@@ -1,0 +1,6 @@
+The plan:
+
+- Get next token in file
+- Parse it into a string of other tokens
+- Find the leftmost nonterminal in the result and parse it (recursively)
+- When all tokens have been reduced to terminals, generate the code and move one step back up the tree

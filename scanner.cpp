@@ -1,0 +1,1 @@
+//Returns the next token in the file for the parser to analyze
