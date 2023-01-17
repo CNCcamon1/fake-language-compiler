@@ -6,6 +6,5 @@ Output: A stream of tokens to parse
 #include "tokenStream.h"
 #include "scanner.h"
 
-TokenStream* parseLine(std::string line){
-    return nullptr;
+void scanLine(std::string line, TokenStream* tokenStream){
 };

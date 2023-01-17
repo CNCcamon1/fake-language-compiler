@@ -1,3 +1,3 @@
 #include <string>
 
-TokenStream* parseLine(std::string line);
+void scanLine(std::string line, TokenStream* tokenStream);
