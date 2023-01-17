@@ -1,6 +1,15 @@
 The plan:
 
-- Get next token in file
-- Parse it into a string of other tokens
-- Find the leftmost nonterminal in the result and parse it (recursively)
-- When all tokens have been reduced to terminals, generate the code and move one step back up the tree
+- For each line:
+    - Get next token in line
+    - Parse it into a string of other tokens
+    - Find the leftmost nonterminal in the result and parse it (recursively)
+    - When all tokens have been reduced to terminals, generate the code and move one step back up the tree
+
+Multithreading plan:
+- Start by getting # of lines (n) in the file
+- Create an array (lineArray) of pointers with size n
+- Run through the file and create a thread to process each line
+- When thread finishes processing a line into LLVM assembly, it sets the pointer at lineArray[n] to point to the generated IR code
+- Another thread continuously looks through this list. If all of the pointers up to index [i] are pointing to LLVM assembly, it sends those lines to LLVM and then frees the respective pointers. If there is a gap in the array that has not been processed yet, it will not proceed
+
