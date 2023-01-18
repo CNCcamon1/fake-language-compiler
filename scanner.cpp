@@ -133,6 +133,9 @@ Token* match_buffer_to_string(std::string* buffer, std::string matchString,
     if(*to_lower_case(buffer) == matchString){
         return new Token(typeIfMatch);
     }
+    else{
+        return nullptr;
+    }
 
 }
 void match_terminals(std::string* buffer, Token** match, std::map<std::string, enum TokenType>* stringToTypeDict){
@@ -152,10 +155,8 @@ TokenStream* match_literals(std::string* buffer, TokenStream* streamEnd, std::ma
     TokenStream* lastStream = nullptr;
     for(char& c : *buffer){
         for (auto const& x : *stringToTypeDict){
-            if(newToken == nullptr){
-                newToken = match_buffer_to_string(new std::string(1,c), x.first, x.second);
-            }
-            else{
+            newToken = match_buffer_to_string(new std::string(1,c), x.first, x.second);
+            if(newToken != nullptr){
                 TokenStream* newStream = new TokenStream(newToken);
                 if(stream == nullptr){
                     stream = newStream;
@@ -170,8 +171,14 @@ TokenStream* match_literals(std::string* buffer, TokenStream* streamEnd, std::ma
             }
         }
     }
-    lastStream->link_tail(streamEnd);
-    return stream;
+    if(lastStream != nullptr){
+        lastStream->link_tail(streamEnd);
+        return stream;
+    }
+    else{
+        return streamEnd;
+    }
+    
 
 }
 
