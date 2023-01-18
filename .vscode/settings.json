@@ -1,0 +1,9 @@
+{
+    "makefile.launchConfigurations": [
+        {
+            "cwd": "/home/crocker/fake-language-compiler/fake-language-compiler",
+            "binaryPath": "/home/crocker/fake-language-compiler/fake-language-compiler/fake-language-compiler.o",
+            "binaryArgs": []
+        }
+    ]
+}

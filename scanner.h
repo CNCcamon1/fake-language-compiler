@@ -1,3 +1,4 @@
 #include <string>
+#include "compiler_types.h"
 
-void scanLine(std::string line, TokenStream* tokenStream);
+TokenStream* scanLine(std::string line);
