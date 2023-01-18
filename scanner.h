@@ -1,4 +1,4 @@
 #include <string>
 #include "compiler_types.h"
 
-TokenStream* scanLine(std::string line);
+TokenStream* scanLine(std::string line, CommentStatus* commentStatus);

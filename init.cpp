@@ -6,8 +6,9 @@
 
 void compile_file(std::istream* file){
     std::string line;
+    CommentStatus* commentStatus = new CommentStatus();
     while (std::getline(*file, line)){
-        TokenStream* tokenStream = scanLine(line);
+        TokenStream* tokenStream = scanLine(line, commentStatus);
     }
 }
 
