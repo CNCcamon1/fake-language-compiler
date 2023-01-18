@@ -205,11 +205,9 @@ TokenStream* scan_line(std::string line, CommentStatus* commentStatus,
     std::map<std::string, enum TokenType>* terminalDict,
     std::map<std::string, enum TokenType>* literalDict){
     TokenStream* stream;
-    TokenStream* lastTokenStream = new TokenStream(nullptr);
+    TokenStream* lastTokenStream = nullptr;
     TokenStream* foundTokenStream;
     std::string* buffer = new std::string("");
-
-    stream = lastTokenStream;
 
     for(char& c : line){
         if(c != ' '){
@@ -220,8 +218,15 @@ TokenStream* scan_line(std::string line, CommentStatus* commentStatus,
                 foundTokenStream = match_token(buffer,terminalDict, literalDict);
                 //If a valid token stream is found,
                 if(foundTokenStream != nullptr){
-                    lastTokenStream->link_end(foundTokenStream);
-                    lastTokenStream = foundTokenStream;
+                    if(lastTokenStream != nullptr){
+                        lastTokenStream->link_end(foundTokenStream);
+                        lastTokenStream = foundTokenStream;
+                    }
+                    else{
+                        lastTokenStream = foundTokenStream;
+                        stream = lastTokenStream;
+                    }
+                    
                     *buffer = "";
                 }
             }
