@@ -5,12 +5,17 @@ Output: A stream of tokens to parse
 #include <iostream>
 #include "scanner.h"
 
+
+Token* match_token(std::string* buffer){
+
+    return nullptr;
+};
+
 TokenStream* scanLine(std::string line, CommentStatus* commentStatus){
-    std::cout<< line << std::endl;
     TokenStream* stream;
     TokenStream* lastTokenStream = new TokenStream(nullptr);
     Token* foundToken;
-    std::string* buffer;
+    std::string* buffer = new std::string("");
 
     stream = lastTokenStream;
 
@@ -31,8 +36,3 @@ TokenStream* scanLine(std::string line, CommentStatus* commentStatus){
     commentStatus->end_line();
     return stream;
 };
-
-Token* match_token(std::string* buffer){
-
-    return nullptr;
-}
