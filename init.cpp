@@ -2,24 +2,22 @@
 #include <fstream>
 #include <map>
 #include "scanner.h"
-#include "parser.h"
 #include "compiler_types.h"
+#include "compiler_exceptions.h"
 
-void compile_file(std::istream* file){
-    std::string line;
+void compile_file(){
+    InFile* file = new InFile("testPgms/correct/math.src");
+    SymbolTable* symbolTable = new SymbolTable();
     CommentStatus* commentStatus = new CommentStatus();
-    std::map<std::string, enum TokenType> terminalDict = make_terminal_dict();
-    std::map<std::string, enum TokenType> literalDict = make_literal_dict();
-    while (std::getline(*file, line)){
-        TokenStream* tokenStream = scan_line(line, commentStatus, &terminalDict, &literalDict);
-        std::cout<<"End";
+    ErrorReporting* errorReporter = new ErrorReporting();
+    Token* nextToken = new Token(NONE);
+    while(nextToken->type != END_OF_FILE){
+        nextToken = scan(file, symbolTable, commentStatus, errorReporter);
     }
-}
+};
 
 int main(int argc, char** argv){
-    std::ifstream ifs;
-    ifs.open("testPgms/correct/math.src");
-    compile_file(&ifs);
+    compile_file();
     return 0;
 }
 
