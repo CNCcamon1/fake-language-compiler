@@ -31,6 +31,9 @@ TokenStream* scanLine(std::string line, CommentStatus* commentStatus){
                 *buffer = "";
             }
         }
+        else{
+            *buffer = "";
+        }
 
     }
     commentStatus->end_line();

@@ -14,7 +14,7 @@ void compile_file(std::istream* file){
 
 int main(int argc, char** argv){
     std::ifstream ifs;
-    ifs.open("testPgms/correct/logicals.src");
+    ifs.open("testPgms/correct/test1.src");
     compile_file(&ifs);
     return 0;
 }

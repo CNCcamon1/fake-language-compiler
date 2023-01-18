@@ -5,5 +5,8 @@
             "binaryPath": "/home/crocker/fake-language-compiler/fake-language-compiler/fake-language-compiler.o",
             "binaryArgs": []
         }
-    ]
+    ],
+    "files.associations": {
+        "random": "cpp"
+    }
 }
