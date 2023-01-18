@@ -41,6 +41,9 @@ enum TokenType{
     DIVIDE_OP_T,
     TRUE_T,
     FALSE_T,
+    ALPHA_T,
+    NUM_T,
+    QUOTE_T,
     PROGRAM_NT,
     PROGRAM_HEADER_NT,
     PROGRAM_BODY_NT,
@@ -72,6 +75,7 @@ enum TokenType{
     NAME_NT,
     STRING_NT,
 
+
 };
 
 class Token{
@@ -94,6 +98,15 @@ class TokenStream{
 
         void link_tail(TokenStream* tail){
             tail = tail;
+        }
+
+        void link_end(TokenStream* end){
+            if(tail == nullptr){
+                tail = end;
+            }
+            else{
+                tail->link_end(end);
+            }
         }
 };
 
