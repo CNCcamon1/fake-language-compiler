@@ -8,7 +8,7 @@ Output: A stream of tokens to parse
 
 
 
-std::map<std::string, enum TokenType> make_string_to_type_dict(){
+std::map<std::string, enum TokenType> make_terminal_dict(){
     std::map<std::string, enum TokenType> stringToTypeDict;
     stringToTypeDict["program"] = PROGRAM_T;
     stringToTypeDict["is"] = IS_T;
@@ -50,6 +50,11 @@ std::map<std::string, enum TokenType> make_string_to_type_dict(){
     stringToTypeDict["true"] = TRUE_T;
     stringToTypeDict["false"] = FALSE_T;
     stringToTypeDict["\""] = QUOTE_T;
+    return stringToTypeDict;
+}
+
+std::map<std::string, enum TokenType> make_literal_dict(){
+    std::map<std::string, enum TokenType> stringToTypeDict;
     stringToTypeDict["a"] = ALPHA_T;
     stringToTypeDict["b"] = ALPHA_T;
     stringToTypeDict["c"] = ALPHA_T;
@@ -118,21 +123,22 @@ std::map<std::string, enum TokenType> make_string_to_type_dict(){
 std::string* to_lower_case(std::string* input){
     std::string* output = new std::string("");
     for(char& c : *input){
-        output += std::tolower(c);
+        *output += std::tolower(c);
     }
     return output;
 }
 
-void match_buffer_to_string(std::string* buffer, std::string matchString,
-    enum TokenType typeIfMatch, Token* match){
+Token* match_buffer_to_string(std::string* buffer, std::string matchString,
+    enum TokenType typeIfMatch){
     if(*to_lower_case(buffer) == matchString){
-        match = new Token(typeIfMatch);
+        return new Token(typeIfMatch);
     }
+
 }
-void match_terminals(std::string* buffer, Token* match, std::map<std::string, enum TokenType>* stringToTypeDict){
+void match_terminals(std::string* buffer, Token** match, std::map<std::string, enum TokenType>* stringToTypeDict){
     for (auto const& x : *stringToTypeDict){
-        if(match == nullptr){
-            match_buffer_to_string(buffer, x.first, x.second, match);
+        if(*match == nullptr){
+            *match = match_buffer_to_string(buffer, x.first, x.second);
         }
         else{
             break;
@@ -147,17 +153,19 @@ TokenStream* match_literals(std::string* buffer, TokenStream* streamEnd, std::ma
     for(char& c : *buffer){
         for (auto const& x : *stringToTypeDict){
             if(newToken == nullptr){
-                match_buffer_to_string(buffer, x.first, x.second, newToken);
+                newToken = match_buffer_to_string(new std::string(1,c), x.first, x.second);
             }
             else{
                 TokenStream* newStream = new TokenStream(newToken);
                 if(stream == nullptr){
                     stream = newStream;
                     lastStream = newStream;
+                    newToken = nullptr;
                 }
                 else{
                     lastStream->link_tail(newStream);
                     lastStream = newStream;
+                    newToken = nullptr;
                 }
             }
         }
@@ -167,9 +175,12 @@ TokenStream* match_literals(std::string* buffer, TokenStream* streamEnd, std::ma
 
 }
 
-TokenStream* match_token(std::string* buffer, std::map<std::string, enum TokenType>* stringToTypeDict){
-    Token* match;
-    match_terminals(buffer, match, stringToTypeDict);
+TokenStream* match_token(std::string* buffer, 
+    std::map<std::string, enum TokenType>* terminalDict,
+    std::map<std::string, enum TokenType>* literalDict){
+    
+    Token* match = nullptr;
+    match_terminals(buffer, &match, terminalDict);
     if(match != nullptr){
         //If the buffer IS a terminal, then just return it
         return new TokenStream(match);
@@ -178,32 +189,25 @@ TokenStream* match_token(std::string* buffer, std::map<std::string, enum TokenTy
         //If not, it may be a string of literals followed by a terminal. 
         for(int i=1; i<(buffer->size()); i++){
             std::string endString = buffer->substr(buffer->size() - i);
-            match_terminals(&endString, match, stringToTypeDict);
+            match_terminals(&endString, &match, terminalDict);
             if(match != nullptr){
                 TokenStream* streamEnd = new TokenStream(match);
                 std::string startString = buffer->substr(0, (buffer->size() - i));
-                TokenStream* stream = match_literals(&startString, streamEnd, stringToTypeDict);
+                TokenStream* stream = match_literals(&startString, streamEnd, literalDict);
                 return stream;
             }
-            else{
-                return nullptr;
-            }
         }
+        return nullptr;
     }
 };
 
-void initialize_scanner(std::map<std::string, enum TokenType>* stringToTypeDict){
-    *stringToTypeDict = make_string_to_type_dict();
-}
-
 TokenStream* scan_line(std::string line, CommentStatus* commentStatus, 
-    std::map<std::string, enum TokenType>* stringToTypeDict){
-
+    std::map<std::string, enum TokenType>* terminalDict,
+    std::map<std::string, enum TokenType>* literalDict){
     TokenStream* stream;
     TokenStream* lastTokenStream = new TokenStream(nullptr);
     TokenStream* foundTokenStream;
     std::string* buffer = new std::string("");
-    
 
     stream = lastTokenStream;
 
@@ -212,7 +216,9 @@ TokenStream* scan_line(std::string line, CommentStatus* commentStatus,
             commentStatus->update_comment_status(c);
             if(commentStatus->in_comment() == false){
                 *buffer += c;
-                foundTokenStream = match_token(buffer, stringToTypeDict);
+                //Get the token stream which matches the buffer, if it exists
+                foundTokenStream = match_token(buffer,terminalDict, literalDict);
+                //If a valid token stream is found,
                 if(foundTokenStream != nullptr){
                     lastTokenStream->link_end(foundTokenStream);
                     lastTokenStream = foundTokenStream;

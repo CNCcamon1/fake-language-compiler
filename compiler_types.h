@@ -57,7 +57,6 @@ enum TokenType{
     TYPE_MARK_NT,
     PARAMETER_LIST_NT,
     PARAMETER_NT,
-    VARIABLE_DECLARATION_NT,
     BOUND_NT,
     NUMBER_NT,
     ASSIGNMENT_STATEMENT_NT,
@@ -82,8 +81,8 @@ class Token{
     public:
         enum TokenType type;
         std::string data;
-        Token(TokenType type){
-            type = type;
+        Token(TokenType typeInput){
+            type = typeInput;
         }
 };
 
@@ -91,13 +90,13 @@ class TokenStream{
     public:
         Token* head;
         TokenStream* tail;
-        TokenStream(Token* head){
-            head = head;
+        TokenStream(Token* headInput){
+            head = headInput;
             tail = nullptr;
         }
 
-        void link_tail(TokenStream* tail){
-            tail = tail;
+        void link_tail(TokenStream* tailInput){
+            tail = tailInput;
         }
 
         void link_end(TokenStream* end){

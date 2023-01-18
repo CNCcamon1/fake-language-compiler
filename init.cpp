@@ -8,16 +8,17 @@
 void compile_file(std::istream* file){
     std::string line;
     CommentStatus* commentStatus = new CommentStatus();
-    std::map<std::string, enum TokenType>* stringToTypeDict = nullptr;
-    initialize_scanner(stringToTypeDict);
+    std::map<std::string, enum TokenType> terminalDict = make_terminal_dict();
+    std::map<std::string, enum TokenType> literalDict = make_literal_dict();
     while (std::getline(*file, line)){
-        TokenStream* tokenStream = scan_line(line, commentStatus, stringToTypeDict);
+        TokenStream* tokenStream = scan_line(line, commentStatus, &terminalDict, &literalDict);
+        std::cout<<"End";
     }
 }
 
 int main(int argc, char** argv){
     std::ifstream ifs;
-    ifs.open("testPgms/correct/test1.src");
+    ifs.open("testPgms/correct/math.src");
     compile_file(&ifs);
     return 0;
 }
