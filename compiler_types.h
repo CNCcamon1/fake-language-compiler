@@ -1,3 +1,9 @@
+#include <fstream>
+#include <iostream>
+#include <map>
+#include <exception>
+#include "compiler_exceptions.h"
+
 #ifndef COMPILER_TYPES
 #define COMPILER_TYPES
 
@@ -73,47 +79,125 @@ enum TokenType{
     FACTOR_NT,
     NAME_NT,
     STRING_NT,
-
-
+    END_OF_FILE,
+    NONE
 };
 
 class Token{
     public:
         enum TokenType type;
-        std::string data;
+        std::string tokenString;
         Token(TokenType typeInput){
             type = typeInput;
+        };
+        Token(TokenType typeInput, std::string tokenStringInput){
+            type = typeInput;
+            tokenString = tokenStringInput;
         }
 };
 
-class TokenStream{
+class InFile{
+    private: 
+        std::ifstream file;
+        int lineCount;
     public:
-        Token* head;
-        TokenStream* tail;
-        TokenStream(Token* headInput){
-            head = headInput;
-            tail = nullptr;
+        InFile(std::string path) : file(path){
+            lineCount = 0;
         }
 
-        void link_tail(TokenStream* tailInput){
-            tail = tailInput;
-        }
-
-        void link_end(TokenStream* end){
-            if(tail == nullptr){
-                tail = end;
+        char get_next_char(){
+            char next;
+            file.get(next);
+            if(file.eof()){
+                throw EndOfFileException();
             }
             else{
-                tail->link_end(end);
+                return next;
             }
         }
 };
 
-class TokenTree{
+class ErrorReporting{
     public:
-        Token* rootNode;
-        TokenTree* leftBranch;
-        TokenTree* rightBranch;
+        ErrorReporting(){
+            errorStatus = false;
+        }
+        bool errorStatus;
+        void reportError(std::string* message){
+
+        };
+        void reportWarning(std::string* message){
+            
+        };
+};
+
+class SymbolTable{
+    public:
+        SymbolTable(){
+            initialize_reserved_symbols();
+        }
+        void mapSet(std::string* string){
+            map[to_lower_case(string)] = new Token(IDENTIFIER_NT, *string);
+        }
+        Token* mapGet(std::string* key){
+            if(map[to_lower_case(key)]){
+                return map[to_lower_case(key)];
+            }
+            else{
+                return nullptr;
+            }
+        }
+    private:
+        std::map<std::string, Token*> map;
+        std::string to_lower_case(std::string* input){
+            std::string* output = new std::string("");
+            for(char& c : *input){
+                *output += std::tolower(c);
+            }
+            return *output;
+        }
+        void initialize_reserved_symbols(){
+            map["program"] = new Token(PROGRAM_T);
+            map["is"] = new Token(IS_T);
+            map["begin"] = new Token(BEGIN_T);
+            map["end"] = new Token(END_T);
+            map["global"] = new Token(GLOBAL_T);
+            map["procedure"] = new Token(PROCEDURE_T);
+            map["("] = new Token(OPEN_PARENTHESIS_T);
+            map[")"] = new Token(CLOSE_PARENTHESIS_T);
+            map[","] = new Token(COMMA_T);
+            map[");"] = new Token(SEMICOLON_T);
+            map["variable"] = new Token(VARIABLE_T);
+            map[":"] = new Token(COLON_T);
+            map["["] = new Token(OPEN_BRACKET_T);
+            map["]"] = new Token(CLOSE_BRACKET_T);
+            map["integer"] = new Token(INTEGER_T);
+            map["float"] = new Token(FLOAT_T);
+            map["string"] = new Token(STRING_T);
+            map["bool"] = new Token(BOOL_T);
+            map[":="] = new Token(ASSIGNMENT_OP_T);
+            map["if"] = new Token(IF_T);
+            map["then"] = new Token(THEN_T);
+            map["else"] = new Token(ELSE_T);
+            map["for"] = new Token(FOR_T);
+            map["return"] = new Token(RETURN_T);
+            map["&"] = new Token(AND_OP_T);
+            map["|"] = new Token(OR_OP_T);
+            map["not"] = new Token(NOT_OP_T);
+            map["+"] = new Token(PLUS_OP_T);
+            map["-"] = new Token(MINUS_OP_T);
+            map["<"] = new Token(LESSTHAN_OP_T);
+            map[">="] = new Token(GREATER_EQUAL_OP_T);
+            map["<="] = new Token(LESS_EQUAL_OP_T);
+            map[">"] = new Token(GREATERTHAN_OP_T);
+            map["=="] = new Token(EQUALITY_OP_T);
+            map["!="] = new Token(INEQUALITY_OP_T);
+            map["*"] = new Token(MULTIPLY_OP_T);
+            map["/"] = new Token(DIVIDE_OP_T);
+            map["true"] = new Token(TRUE_T);
+            map["false"] = new Token(FALSE_T);
+            map["\""] = new Token(QUOTE_T);
+        }
 };
 
 class CommentStatus{
