@@ -108,6 +108,9 @@ class InFile{
         char get_next_char(){
             char next;
             file.get(next);
+            if(next == '\n'){
+                lineCount++;
+            }
             if(file.eof()){
                 throw EndOfFileException();
             }
@@ -238,6 +241,11 @@ class CommentStatus{
                 else{
                     endingComment = true;
                 }
+            }
+            else if(c == '\n'){
+                beginningComment = false;
+                endingComment = false;
+                end_line();
             }
             else{
                 beginningComment = false;
