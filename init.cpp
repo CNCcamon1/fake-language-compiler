@@ -6,6 +6,7 @@
 #include "compiler_exceptions.h"
 
 void compile_file(){
+    //Adding a comment
     InFile* file = new InFile("testPgms/correct/math.src");
     SymbolTable* symbolTable = new SymbolTable();
     CommentStatus* commentStatus = new CommentStatus();
