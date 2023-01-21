@@ -118,6 +118,10 @@ class InFile{
                 return next;
             }
         }
+
+        int get_line_count(){
+            return lineCount;
+        }
 };
 
 class ErrorReporting{

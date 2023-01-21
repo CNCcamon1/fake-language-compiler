@@ -6,7 +6,6 @@
 #include "compiler_exceptions.h"
 
 void compile_file(){
-    //Adding a comment
     InFile* file = new InFile("testPgms/correct/math.src");
     SymbolTable* symbolTable = new SymbolTable();
     CommentStatus* commentStatus = new CommentStatus();
@@ -15,6 +14,7 @@ void compile_file(){
     while(nextToken->type != END_OF_FILE){
         nextToken = scan(file, symbolTable, commentStatus, errorReporter);
     }
+    std::cout<<"Scanned " << std::to_string(file->get_line_count()) << " lines. \n";
 };
 
 int main(int argc, char** argv){
