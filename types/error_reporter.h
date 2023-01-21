@@ -16,6 +16,18 @@ struct ErroneousCommentException : public std::exception {
    }
 };
 
+struct TerminalMismatchException : public std::exception {
+   const char * what () const throw () {
+      return "Derivation did not match token";
+   }
+};
+
+struct NoValidDerivationsException : public std::exception {
+   const char * what () const throw () {
+      return "No more valid derivation options";
+   }
+};
+
 class ErrorReporter{
     public:
         ErrorReporter(){

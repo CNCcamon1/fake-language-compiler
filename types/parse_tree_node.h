@@ -25,6 +25,13 @@ class ParseTreeNode{
             return children[i];
         }
 
+        void delete_children(){
+            for(int i=0; i<children.size(); i++){
+                delete children[i];
+            }
+            children = {};
+        }
+
     private:
         
         std::vector<ParseTreeNode*> children;
