@@ -8,7 +8,7 @@ void compile_file(){
     Token* nextToken = new Token(NONE);
 
     ParseTree* parsedTree = parse_file(file, symbolTable, commentStatus, errorReporter);
-    std::cout<<"Scanned " << std::to_string(file->get_line_count()) << " lines. \n";
+    std::cout<<"Parsed " << std::to_string(file->get_line_count()) << " lines. \n";
 };
 
 int main(int argc, char** argv){

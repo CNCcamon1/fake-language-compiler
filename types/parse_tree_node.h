@@ -11,6 +11,7 @@ class ParseTreeNode{
             type = typeInput;
         }
         TokenType type;
+        std::string data;
 
         void add_child(ParseTreeNode* node){
             children.push_back(node);
