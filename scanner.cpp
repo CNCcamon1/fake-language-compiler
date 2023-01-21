@@ -5,7 +5,6 @@ Output: A stream of tokens to parse
 #include <iostream>
 #include <map>
 #include "scanner.h"
-#include "compiler_types.h"
 
 Token* match_token(std::string* buffer, SymbolTable* symbolTable){
     Token* matched_token = symbolTable->mapGet(buffer);
@@ -18,7 +17,7 @@ Token* match_token(std::string* buffer, SymbolTable* symbolTable){
     }
 };
 
-Token* scan(InFile* file, SymbolTable* symbolTable, CommentStatus* commentStatus, ErrorReporting* errorReporter){
+Token* scan(InFile* file, SymbolTable* symbolTable, CommentStatus* commentStatus, ErrorReporter* errorReporter){
     Token* nextToken = nullptr;
     std::string* buffer = new std::string("");
     while(nextToken == nullptr){
