@@ -71,6 +71,14 @@ class SymbolTable{
             map["true"] = new Token(TRUE_T);
             map["false"] = new Token(FALSE_T);
             map["\""] = new Token(QUOTE_T);
+            map["getBool"] = new Token(IDENTIFIER_NT);
+            map["getInteger"] = new Token(IDENTIFIER_NT);
+            map["getFloat"] = new Token(IDENTIFIER_NT);
+            map["getString"] = new Token(IDENTIFIER_NT);
+            map["putBool"] = new Token(IDENTIFIER_NT);
+            map["putInteger"] = new Token(IDENTIFIER_NT);
+            map["putFloat"] = new Token(IDENTIFIER_NT);
+            map["putString"] = new Token(IDENTIFIER_NT);
         }
 };
 

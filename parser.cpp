@@ -16,7 +16,7 @@ std::vector<ProductionOption>* get_production_options(TokenType type){
     ProductionOption option9;
     switch(type){
         case PROGRAM_NT:
-            option1 = ProductionOption({PROGRAM_HEADER_NT, PROGRAM_BODY_NT});
+            option1 = ProductionOption({PROGRAM_HEADER_NT, PROGRAM_BODY_NT, PERIOD_T, END_OF_FILE});
             options->push_back(option1);
             break;
         case PROGRAM_HEADER_NT:
@@ -136,11 +136,19 @@ std::vector<ProductionOption>* get_production_options(TokenType type){
             options->push_back(option1);
             break;
         case EXPRESSION_NT:
-            option1 = ProductionOption({EXPRESSION_NT, AND_OP_T, ARITH_OP_NT});
+            option1 = ProductionOption({NOT_OP_T, ARITH_OP_NT, EXPRESSION_RECURSE_NT});
             options->push_back(option1);
-            option2 = ProductionOption({EXPRESSION_NT, OR_OP_T, ARITH_OP_NT});
+            option2 = ProductionOption({ARITH_OP_NT, EXPRESSION_RECURSE_NT});
             options->push_back(option2);
             option3 = ProductionOption({NOT_OP_T, ARITH_OP_NT});
+            options->push_back(option3);
+            option4 = ProductionOption({ARITH_OP_NT});
+            options->push_back(option4);
+            break;
+        case EXPRESSION_RECURSE_NT:
+            option1 = ProductionOption({AND_OP_T, ARITH_OP_NT});
+            options->push_back(option1);
+            option2 = ProductionOption({OR_OP_T, ARITH_OP_NT});
             options->push_back(option3);
             break;
         case ARITH_OP_NT:
@@ -207,6 +215,10 @@ std::vector<ProductionOption>* get_production_options(TokenType type){
             option2 = ProductionOption({EXPRESSION_NT});
             options->push_back(option2);
             break;
+        case STRING_NT:
+            option1 = ProductionOption({QUOTE_T, STRING_LITERAL_NT, QUOTE_T});
+            options->push_back(option1);
+
         default:
             break;
     }
@@ -214,96 +226,161 @@ std::vector<ProductionOption>* get_production_options(TokenType type){
     return options;
 }
 
+bool check_if_number(std::string tokenString){
+    std::string::const_iterator it = tokenString.begin();
+    bool decimalEncountered = false;
+    while (it != tokenString.end()){
+        if(*it == '.'){
+            if(decimalEncountered == true){
+                return false;
+            }
+            else{
+                decimalEncountered = true;
+            }
+        }
+        else if(isdigit(*it)){
+            it++;
+        }
+        else{
+            return false;
+        }
+    }
+    return true;
+}
+
+Token* get_token_at_current_index(std::vector<Token*>* encounteredTokens, int currentTokenIndex,
+    InFile* file, SymbolTable* symbolTable, 
+    CommentStatus* commentStatus, ErrorReporter* errorReporter){
+
+        Token* currentToken;
+        try{
+            currentToken = encounteredTokens->at(currentTokenIndex);
+        }
+        catch(std::out_of_range e){
+            encounteredTokens->push_back(scan(file, symbolTable, commentStatus, errorReporter));
+            currentToken = encounteredTokens->at(currentTokenIndex);
+        }
+        return currentToken;
+
+}
+
 ProductionOption choose_production(std::vector<ProductionOption>* productionOptions, 
-    Token* currentToken, Token* lookaheadToken, int failedAttempts){
+    std::vector<Token*>* encounteredTokens, int currentTokenIndex, int failedAttempts,
+    InFile* file, SymbolTable* symbolTable, 
+    CommentStatus* commentStatus, ErrorReporter* errorReporter){
         if(productionOptions->size() == 1){
             return productionOptions->at(0);
         }
         else{
-            for(int i=0; i<productionOptions->size(); i++){
-                ProductionOption option = productionOptions->at(i);
-                if(option.tokens[0] == currentToken->type && option.tokens[1] == lookaheadToken->type){
-                    return option;
-                }
-            }
-            return productionOptions->at(failedAttempts);
+            Token* currentToken = get_token_at_current_index(encounteredTokens, currentTokenIndex, file, symbolTable,
+                commentStatus, errorReporter);
+            Token* lookaheadToken = get_token_at_current_index(encounteredTokens, currentTokenIndex+1, file, symbolTable,
+                commentStatus, errorReporter);
+           for(int i=0; i<productionOptions->size(); i++){
+                if(productionOptions->at(i).tokens.at(0) == currentToken->type){
+                        if(productionOptions->at(i).tokens.size() == 1){
+                            return productionOptions->at(i);
+                        }
+                        else if(productionOptions->at(i).tokens.at(1) == lookaheadToken->type){
+                            return productionOptions->at(i);
+                        }
+                    }
+           }
+           return productionOptions->at(failedAttempts);
         }
 
 }
 
-Token* parse_node(ParseTreeNode* node, Token* currentToken, Token* lookaheadToken,
-    InFile* file, SymbolTable* symbolTable, CommentStatus* commentStatus, 
-    ErrorReporter* errorReporter){
-    std::cout<<"Parsing node of type " << TokenTools::token_type_to_string(node->type) << "\n";
-    std::cout<<"Current token type: " << TokenTools::token_type_to_string(currentToken->type) << " Lookahead token type: " << TokenTools::token_type_to_string(lookaheadToken->type) << "\n";
-    //Check if the node is a terminal
-    if(node->type < 42){
-        if(node->type != currentToken->type){
-            std::cout<<"Terminal doesn't match. \n";
-            throw TerminalMismatchException();
+void parse_node(ParseTreeNode* node, std::vector<Token*>* encounteredTokens, 
+    int currentTokenIndex, InFile* file, SymbolTable* symbolTable, 
+    CommentStatus* commentStatus, ErrorReporter* errorReporter){
+        std::cout<<"Parsing node of type "<<TokenTools::token_type_to_string(node->type)<<"\n";
+        //std::cout<<"Made it to line "<< std::to_string(file->get_line_count()) <<"\n";
+        Token* currentToken = get_token_at_current_index(encounteredTokens, currentTokenIndex,
+                file, symbolTable, commentStatus,errorReporter);
+        if(currentToken->type == END_OF_FILE){
+            std::cout<<"Here";
         }
-        return lookaheadToken;
-    }
-    else{
-        switch(node->type){
-            case IDENTIFIER_NT:
-                node->data = currentToken->tokenString;
-                return lookaheadToken;
-                break;
-            default:
-                int failedAttempts = 0;
-                //Get the list of possible productions based on the node type
-                std::vector<ProductionOption>* productionOptions = get_production_options(node->type);
-                //Try productions until one succeeds or all options are exhausted
-                while(failedAttempts < productionOptions->size()){
-                    try{
-                        //Choose a production to try
-                        ProductionOption chosenProduction = choose_production(productionOptions, currentToken, lookaheadToken, failedAttempts);
-                        std::cout<<"Production selected: ";
-                        chosenProduction.print_tokens_in_option();
-                        //Create nodes for the children (based on the production selected)
-                        for(int i=0; i<chosenProduction.tokens.size(); i++){
-                            ParseTreeNode* childNode = new ParseTreeNode(chosenProduction.tokens[i]);
-                            node->add_child(childNode);
-                        }
-                        //Go through the children and parse them, recursively
-                        for(int i=0; i<node->get_children_count(); i++){
-                            lookaheadToken = parse_node(node->get_child(i), currentToken, lookaheadToken, file, 
-                                symbolTable, commentStatus, errorReporter);
-                            if(i < node->get_children_count()-1){
-                                std::cout<<"Advancing to next token. \n";
-                                currentToken = lookaheadToken;
-                                lookaheadToken = scan(file, symbolTable, commentStatus, errorReporter);
+        //Check if node is terminal.
+        if(node->type < 42){
+            //Make sure it matches the current token
+            if(node->type != currentToken->type){
+                throw TerminalMismatchException();
+            };
+            std::cout<<"Terminal matches current token. \n";
+        }
+        else if(node->type == IDENTIFIER_NT){
+            //If the token is an identifier, set its data to the token string
+
+            node->data = currentToken->tokenString;
+            std::cout<<"Processed identifier " << currentToken->tokenString << "\n";
+        }
+        else if(node-> type == NUMBER_NT){
+            std::string tokenString = currentToken->tokenString;
+            if(check_if_number(tokenString)){
+                node->data = tokenString;
+            }
+            else{
+                throw TerminalMismatchException();
+            }
+        }
+        else if(node->type == STRING_LITERAL_NT){
+            node->data = currentToken->tokenString;
+        }
+        else{
+            int failedAttempts = 0;
+            std::vector<ProductionOption>* productionOptions = get_production_options(node->type);
+            while(failedAttempts < productionOptions->size()){
+                try{
+                    ProductionOption selectedOption = choose_production(productionOptions, 
+                        encounteredTokens, currentTokenIndex, failedAttempts, file, symbolTable,
+                        commentStatus, errorReporter);
+                    std::cout<<"Chose ";
+                    selectedOption.print_tokens_in_option();
+                    for(int i=0; i<selectedOption.tokens.size(); i++){
+                        ParseTreeNode* newNode = new ParseTreeNode(selectedOption.tokens[i]);
+                        node->add_child(newNode);
+                    }
+                    for(int i=0; i<node->get_children_count(); i++){
+                        parse_node(node->get_child(i), encounteredTokens, currentTokenIndex, file, symbolTable,
+                            commentStatus, errorReporter);
+                        if(i < node->get_children_count() - 1){
+                            std::cout<<"Moving to next token. \n";
+                            currentTokenIndex++;
+                            try{
+                                encounteredTokens->at(i);
+                            }
+                            catch(std::out_of_range e){
+                                encounteredTokens->push_back(scan(file, symbolTable, commentStatus, errorReporter));
                             }
                         }
-                        return lookaheadToken;
                     }
-                    catch(TerminalMismatchException e){
-                        //If one of the terminals on the fringe doesn't match its respective token, the derivation is wrong.
-                        std::cout<<"Trying the next derivation possibility. \n";
-                        node->delete_children();
-                        failedAttempts++;
-                    }
-                    catch(NoValidDerivationsException e){
-                        std::cout<<"Trying the next derivation possibility. \n";
-                        node->delete_children();
-                        failedAttempts++;
-                    }
+                    break;
                 }
-
-                //If no valid derivations are found, throw an error.
-                throw NoValidDerivationsException();
+                catch(TerminalMismatchException e){
+                    std::cout<<"Terminal mismatch. \n";
+                    failedAttempts++;
+                }
+                catch(NoValidDerivationsException e){
+                    std::cout<<"No Valid derivations. \n";
+                    failedAttempts++;
+                }
+            }
         }
-    }
-
-}
+};
 
 ParseTree* parse_file(InFile* file, SymbolTable* symbolTable, 
     CommentStatus* commentStatus, ErrorReporter* errorReporter){
 
         ParseTree* parsedTree = new ParseTree(new ParseTreeNode(PROGRAM_NT));
-        Token* currentToken = scan(file, symbolTable, commentStatus, errorReporter);
-        Token* lookaheadToken = scan(file, symbolTable, commentStatus, errorReporter);
-        parse_node(parsedTree->rootNode, currentToken, lookaheadToken, 
-            file, symbolTable, commentStatus, errorReporter);
+        std::vector<Token*> encounteredTokens;
+        encounteredTokens.push_back(scan(file, symbolTable, commentStatus, errorReporter));
+        encounteredTokens.push_back(scan(file, symbolTable, commentStatus, errorReporter));
+        try{
+            parse_node(parsedTree->rootNode, &encounteredTokens, 0, file, symbolTable, commentStatus,
+                errorReporter);
+        }
+        catch(EndOfFileException e){
+            std::cout<<"Made it to end of file. Parsed " << std::to_string(file->get_line_count()) << " lines. \n";
+        }
 };
