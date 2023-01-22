@@ -5,5 +5,4 @@
 #include "types/error_reporter.h"
 #include "scanner.h"
 
-ParseTree* parse_file(InFile* file, SymbolTable* symbolTable, 
-    CommentStatus* commentStatus, ErrorReporter* errorReporter);
+ParseTree* parse_file(struct ScannerParams* scannerParams);

@@ -6,8 +6,12 @@ void compile_file(){
     CommentStatus* commentStatus = new CommentStatus();
     ErrorReporter* errorReporter = new ErrorReporter();
     Token* nextToken = new Token(NONE);
-
-    ParseTree* parsedTree = parse_file(file, symbolTable, commentStatus, errorReporter);
+    struct ScannerParams* scannerParams;
+    scannerParams->file = file;
+    scannerParams->symbolTable = symbolTable;
+    scannerParams->commentStatus = commentStatus;
+    scannerParams->errorReporter = errorReporter;
+    ParseTree* parsedTree = parse_file(scannerParams);
 };
 
 int main(int argc, char** argv){

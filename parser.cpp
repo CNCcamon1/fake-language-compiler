@@ -226,6 +226,9 @@ std::vector<ProductionOption>* get_production_options(TokenType type){
     return options;
 }
 
+int parse_node(ParseTreeNode* node, std::vector<Token*>* encounteredTokens, 
+    int currentTokenIndex, struct ScannerParams* scannerParams);
+
 bool check_if_number(std::string tokenString){
     std::string::const_iterator it = tokenString.begin();
     bool decimalEncountered = false;
@@ -248,16 +251,15 @@ bool check_if_number(std::string tokenString){
     return true;
 }
 
-Token* get_token_at_current_index(std::vector<Token*>* encounteredTokens, int currentTokenIndex,
-    InFile* file, SymbolTable* symbolTable, 
-    CommentStatus* commentStatus, ErrorReporter* errorReporter){
+Token* get_token_at_index(std::vector<Token*>* encounteredTokens, int currentTokenIndex,
+    struct ScannerParams* scannerParams){
 
         Token* currentToken;
         try{
             currentToken = encounteredTokens->at(currentTokenIndex);
         }
         catch(std::out_of_range e){
-            encounteredTokens->push_back(scan(file, symbolTable, commentStatus, errorReporter));
+            encounteredTokens->push_back(scan(scannerParams));
             currentToken = encounteredTokens->at(currentTokenIndex);
         }
         return currentToken;
@@ -266,121 +268,165 @@ Token* get_token_at_current_index(std::vector<Token*>* encounteredTokens, int cu
 
 ProductionOption choose_production(std::vector<ProductionOption>* productionOptions, 
     std::vector<Token*>* encounteredTokens, int currentTokenIndex, int failedAttempts,
-    InFile* file, SymbolTable* symbolTable, 
-    CommentStatus* commentStatus, ErrorReporter* errorReporter){
+    struct ScannerParams* scannerParams){
+        //If only one option, no choice but to return it
         if(productionOptions->size() == 1){
+            //std::cout<<"Only one production option. \n";
             return productionOptions->at(0);
         }
         else{
-            Token* currentToken = get_token_at_current_index(encounteredTokens, currentTokenIndex, file, symbolTable,
-                commentStatus, errorReporter);
-            Token* lookaheadToken = get_token_at_current_index(encounteredTokens, currentTokenIndex+1, file, symbolTable,
-                commentStatus, errorReporter);
-           for(int i=0; i<productionOptions->size(); i++){
+            //Get current token and lookahead token
+            Token* currentToken = get_token_at_index(encounteredTokens, currentTokenIndex, scannerParams);
+            Token* lookaheadToken = get_token_at_index(encounteredTokens, currentTokenIndex+1, scannerParams);
+            //See how many options have a first token which matches the current token
+            std::vector<int> matchIndexes;
+            for(int i=0; i<productionOptions->size(); i++){
                 if(productionOptions->at(i).tokens.at(0) == currentToken->type){
-                        if(productionOptions->at(i).tokens.size() == 1){
-                            return productionOptions->at(i);
-                        }
-                        else if(productionOptions->at(i).tokens.at(1) == lookaheadToken->type){
-                            return productionOptions->at(i);
-                        }
+                    //std::cout<<"Single token match found at option index " << std::to_string(i)<<"\n";
+                    matchIndexes.push_back(i);
+                }
+            }
+            //If only one option is found which matches the first token, return it
+            if(matchIndexes.size() == 0){
+                return productionOptions->at(failedAttempts);
+            }
+            else if(matchIndexes.size() == 1){
+                //std::cout<<"Only one option matches the first token. \n";
+                return productionOptions->at(matchIndexes[0]);
+            }
+            else{
+                //Check how many of those options match the second token as well
+                std::vector<int> doubleMatchIndexes;
+                for(int i=0; i<matchIndexes.size(); i++){
+                    int matchIndex = matchIndexes[i];
+                    if(productionOptions->at(matchIndex).tokens.at(1) == lookaheadToken->type){
+                        //std::cout<<"Double token match found at option index " << std::to_string(matchIndex)<<"\n";
+                        doubleMatchIndexes.push_back(matchIndex);
                     }
-           }
-           return productionOptions->at(failedAttempts);
+                }
+                if(doubleMatchIndexes.size() == 0){
+                    return productionOptions->at(matchIndexes[failedAttempts]);
+                }
+                //If only one double match, return it
+                else if(doubleMatchIndexes.size() == 1){
+                    //std::cout<<"Only one option matches two tokens. \n";
+                    return productionOptions->at(doubleMatchIndexes[0]);
+                }
+                else{
+                    //If more than one double match, return the nth match based on the number of failed attempts
+                    //std::cout<<"Multiple options match both tokens. Returning the one at index "<< std::to_string(doubleMatchIndexes[failedAttempts])<<"\n";
+                    return productionOptions->at(doubleMatchIndexes[failedAttempts]);
+                }
+            }
+            //If there are no matches, return the nth option based on the number of failed attempts
+
+            //std::cout<<"No matches found. \n";
+            return productionOptions->at(failedAttempts);
         }
 
 }
 
-void parse_node(ParseTreeNode* node, std::vector<Token*>* encounteredTokens, 
-    int currentTokenIndex, InFile* file, SymbolTable* symbolTable, 
-    CommentStatus* commentStatus, ErrorReporter* errorReporter){
-        std::cout<<"Parsing node of type "<<TokenTools::token_type_to_string(node->type)<<"\n";
-        //std::cout<<"Made it to line "<< std::to_string(file->get_line_count()) <<"\n";
-        Token* currentToken = get_token_at_current_index(encounteredTokens, currentTokenIndex,
-                file, symbolTable, commentStatus,errorReporter);
-        if(currentToken->type == END_OF_FILE){
-            std::cout<<"Here";
-        }
-        //Check if node is terminal.
-        if(node->type < 42){
-            //Make sure it matches the current token
-            if(node->type != currentToken->type){
-                throw TerminalMismatchException();
-            };
-            std::cout<<"Terminal matches current token. \n";
-        }
-        else if(node->type == IDENTIFIER_NT){
-            //If the token is an identifier, set its data to the token string
-
-            node->data = currentToken->tokenString;
-            std::cout<<"Processed identifier " << currentToken->tokenString << "\n";
-        }
-        else if(node-> type == NUMBER_NT){
-            std::string tokenString = currentToken->tokenString;
-            if(check_if_number(tokenString)){
-                node->data = tokenString;
-            }
-            else{
-                throw TerminalMismatchException();
-            }
-        }
-        else if(node->type == STRING_LITERAL_NT){
-            node->data = currentToken->tokenString;
+int parse_terminal(ParseTreeNode* node, std::vector<Token*>* encounteredTokens, 
+    int currentTokenIndex, struct ScannerParams* scannerParams){ 
+        //Check that the node being processed matches the current token
+        Token* currentToken = get_token_at_index(encounteredTokens, currentTokenIndex, scannerParams);
+        if(node->type != currentToken->type){
+            std::cout<<"Terminal mismatch. " << TokenTools::token_type_to_string(currentToken->type) << 
+            " is not " << TokenTools::token_type_to_string(node->type) << "\n";
+            throw TerminalMismatchException();
         }
         else{
-            int failedAttempts = 0;
-            std::vector<ProductionOption>* productionOptions = get_production_options(node->type);
-            while(failedAttempts < productionOptions->size()){
-                try{
-                    ProductionOption selectedOption = choose_production(productionOptions, 
-                        encounteredTokens, currentTokenIndex, failedAttempts, file, symbolTable,
-                        commentStatus, errorReporter);
-                    std::cout<<"Chose ";
-                    selectedOption.print_tokens_in_option();
-                    for(int i=0; i<selectedOption.tokens.size(); i++){
-                        ParseTreeNode* newNode = new ParseTreeNode(selectedOption.tokens[i]);
-                        node->add_child(newNode);
-                    }
-                    for(int i=0; i<node->get_children_count(); i++){
-                        parse_node(node->get_child(i), encounteredTokens, currentTokenIndex, file, symbolTable,
-                            commentStatus, errorReporter);
-                        if(i < node->get_children_count() - 1){
-                            std::cout<<"Moving to next token. \n";
-                            currentTokenIndex++;
-                            try{
-                                encounteredTokens->at(i);
-                            }
-                            catch(std::out_of_range e){
-                                encounteredTokens->push_back(scan(file, symbolTable, commentStatus, errorReporter));
-                            }
-                        }
-                    }
-                    break;
-                }
-                catch(TerminalMismatchException e){
-                    std::cout<<"Terminal mismatch. \n";
-                    failedAttempts++;
-                }
-                catch(NoValidDerivationsException e){
-                    std::cout<<"No Valid derivations. \n";
-                    failedAttempts++;
-                }
+            std::cout<<"Terminal matches. \n";
+            return currentTokenIndex;
+        }
+}
+
+int parse_identifier(ParseTreeNode* node, std::vector<Token*>* encounteredTokens, 
+    int currentTokenIndex, struct ScannerParams* scannerParams){ 
+        Token* currentToken = get_token_at_index(encounteredTokens, currentTokenIndex, scannerParams);
+        node->data = currentToken->tokenString;
+        std::cout<<"Processed identifier " << currentToken->tokenString << "\n";
+        return currentTokenIndex;
+}
+
+int try_production_option(ParseTreeNode* node, std::vector<Token*>* encounteredTokens, 
+    int currentTokenIndex, struct ScannerParams* scannerParams, ProductionOption optionToTry){
+        //Populate Children
+        for(int i=0; i<optionToTry.tokens.size(); i++){
+            ParseTreeNode* newNode = new ParseTreeNode(optionToTry.tokens[i]);
+            node->add_child(newNode);
+        }
+        //Parse each child
+        for(int i=0; i<node->get_children_count(); i++){
+            currentTokenIndex = parse_node(node->get_child(i), encounteredTokens, currentTokenIndex, scannerParams);
+            if(i < node->get_children_count() - 1){
+                std::cout<<"Advancing to next token. \n";
+                currentTokenIndex++;
             }
+
+        }
+        return currentTokenIndex;
+}
+
+int parse_nonterminal(ParseTreeNode* node, std::vector<Token*>* encounteredTokens, 
+    int currentTokenIndex, struct ScannerParams* scannerParams){ 
+        std::vector<ProductionOption>* productionOptions = get_production_options(node->type);
+        int failedAttempts = 0;
+        while(failedAttempts < productionOptions->size()){
+            /*if(node->type == VARIABLE_DECLARATION_NT){
+                std::cout<<"VARIABLE_DELCARATION_NT has production options: \n";
+                for(int i=0; i<productionOptions->size(); i++){
+                    productionOptions->at(i).print_tokens_in_option();
+                }
+            } */
+            ProductionOption optionToTry = choose_production(productionOptions, 
+                encounteredTokens, currentTokenIndex, failedAttempts, scannerParams);
+            std::cout<<"Node of type " << TokenTools::token_type_to_string(node->type) << " is trying ";
+            optionToTry.print_tokens_in_option();
+            try{
+                return try_production_option(node, encounteredTokens, currentTokenIndex, scannerParams, optionToTry);
+            }
+            catch(TerminalMismatchException e){
+                std::cout<<"Incrementing failed attempts on node with type " << TokenTools::token_type_to_string(node->type) << "\n";
+                node->delete_children();
+                failedAttempts++;
+            }
+            catch(NoValidDerivationsException e){
+                std::cout<<"Incrementing failed attempts on node with type " << TokenTools::token_type_to_string(node->type) << "\n";
+                node->delete_children();
+                failedAttempts++;
+            }
+        }
+        std::cout<<"No valid derivations. \n";
+        throw NoValidDerivationsException();
+}
+
+int parse_node(ParseTreeNode* node, std::vector<Token*>* encounteredTokens, 
+    int currentTokenIndex, struct ScannerParams* scannerParams){
+        std::cout<<"Parsing node of type " << TokenTools::token_type_to_string(node->type) << 
+        ". Current token index is " << std::to_string(currentTokenIndex) << "\n";
+        std::cout<<"Made it to line "<<std::to_string(scannerParams->file->get_line_count())<<"\n";
+        if(node->type < 42){
+            return parse_terminal(node, encounteredTokens, currentTokenIndex, scannerParams);
+        }
+        else if(node->type == IDENTIFIER_NT){
+            return parse_identifier(node, encounteredTokens, currentTokenIndex, scannerParams);
+        }
+        else{
+            return parse_nonterminal(node, encounteredTokens, currentTokenIndex, scannerParams);
         }
 };
 
-ParseTree* parse_file(InFile* file, SymbolTable* symbolTable, 
-    CommentStatus* commentStatus, ErrorReporter* errorReporter){
+ParseTree* parse_file(struct ScannerParams* scannerParams){
 
         ParseTree* parsedTree = new ParseTree(new ParseTreeNode(PROGRAM_NT));
         std::vector<Token*> encounteredTokens;
-        encounteredTokens.push_back(scan(file, symbolTable, commentStatus, errorReporter));
-        encounteredTokens.push_back(scan(file, symbolTable, commentStatus, errorReporter));
+        encounteredTokens.push_back(scan(scannerParams));
+        encounteredTokens.push_back(scan(scannerParams));
         try{
-            parse_node(parsedTree->rootNode, &encounteredTokens, 0, file, symbolTable, commentStatus,
-                errorReporter);
+            parse_node(parsedTree->rootNode, &encounteredTokens, 0, scannerParams);
         }
         catch(EndOfFileException e){
-            std::cout<<"Made it to end of file. Parsed " << std::to_string(file->get_line_count()) << " lines. \n";
+            std::cout<<"Made it to end of file. Parsed " << std::to_string(scannerParams->file->get_line_count()) << " lines. \n";
         }
 };

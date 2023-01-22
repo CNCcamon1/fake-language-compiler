@@ -17,20 +17,20 @@ Token* match_token(std::string* buffer, SymbolTable* symbolTable){
     }
 };
 
-Token* scan(InFile* file, SymbolTable* symbolTable, CommentStatus* commentStatus, ErrorReporter* errorReporter){
+Token* scan(struct ScannerParams* scannerParams){
     Token* nextToken = nullptr;
     std::string* buffer = new std::string("");
     while(nextToken == nullptr){
         try{
-            char nextChar = file->get_next_char();
-            commentStatus->update_comment_status(nextChar);
-            if(commentStatus->in_comment()){
+            char nextChar = scannerParams->file->get_next_char();
+            scannerParams->commentStatus->update_comment_status(nextChar);
+            if(scannerParams->commentStatus->in_comment()){
                 //If in a comment, clear the buffer and don't process it
                 if(!(*buffer == "" || *buffer == "/" || *buffer == "*")){
                     /*If the buffer contains anything but the first character of a comment, 
                     and a comment has been entered, that's an error condition */
                     std::string* errorMessage = new std::string("No space detected between token and comment.");
-                    errorReporter->reportError(errorMessage);
+                    scannerParams->errorReporter->reportError(errorMessage);
                 }
                 else{
                     *buffer = "";
@@ -44,7 +44,7 @@ Token* scan(InFile* file, SymbolTable* symbolTable, CommentStatus* commentStatus
                     //It is the end of a token
                     std::string token_string = buffer->substr(0, (buffer->size() - 1));
                     if(token_string != ""){
-                        nextToken = match_token(&token_string, symbolTable);
+                        nextToken = match_token(&token_string, scannerParams->symbolTable);
                     }
                     else{
                         *buffer = "";

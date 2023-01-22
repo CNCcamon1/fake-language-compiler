@@ -4,5 +4,11 @@
 #include "types/comment_status.h"
 #include "types/error_reporter.h"
 
-Token* scan(InFile* file, SymbolTable* symbolTable, 
-    CommentStatus* commentStatus, ErrorReporter* errorReporter);
+struct ScannerParams{
+    InFile* file;
+    SymbolTable* symbolTable;
+    CommentStatus* commentStatus;
+    ErrorReporter* errorReporter;
+};
+
+Token* scan(struct ScannerParams* scannerParams);
