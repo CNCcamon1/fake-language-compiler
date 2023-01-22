@@ -406,6 +406,9 @@ int parse_node(ParseTreeNode* node, std::vector<Token*>* encounteredTokens,
         std::cout<<"Parsing node of type " << TokenTools::token_type_to_string(node->type) << 
         ". Current token index is " << std::to_string(currentTokenIndex) << "\n";
         std::cout<<"Made it to line "<<std::to_string(scannerParams->file->get_line_count())<<"\n";
+        if(node->type == BEGIN_T){
+            std::cout<<"Here";
+        }
         if(node->type < 42){
             return parse_terminal(node, encounteredTokens, currentTokenIndex, scannerParams);
         }

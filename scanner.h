@@ -9,6 +9,7 @@ struct ScannerParams{
     SymbolTable* symbolTable;
     CommentStatus* commentStatus;
     ErrorReporter* errorReporter;
+    TokenType nextToken;
 };
 
 Token* scan(struct ScannerParams* scannerParams);

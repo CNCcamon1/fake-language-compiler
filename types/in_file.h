@@ -21,6 +21,9 @@ class InFile{
             if(next == '\n'){
                 lineCount++;
             }
+            if(next == '\t'){
+                return get_next_char();
+            }
             if(file.eof()){
                 throw EndOfFileException();
             }

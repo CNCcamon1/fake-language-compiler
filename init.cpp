@@ -11,6 +11,7 @@ void compile_file(){
     scannerParams->symbolTable = symbolTable;
     scannerParams->commentStatus = commentStatus;
     scannerParams->errorReporter = errorReporter;
+    scannerParams->nextToken = NONE;
     ParseTree* parsedTree = parse_file(scannerParams);
 };
 
