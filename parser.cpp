@@ -152,36 +152,47 @@ std::vector<ProductionOption>* get_production_options(TokenType type){
             options->push_back(option3);
             break;
         case ARITH_OP_NT:
-            option1 = ProductionOption({ARITH_OP_NT, PLUS_OP_T, RELATION_NT});
+            option1 = ProductionOption({RELATION_NT, ARITH_OP_RECURSE_NT});
             options->push_back(option1);
-            option2 = ProductionOption({ARITH_OP_NT, MINUS_OP_T, RELATION_NT});
+            option2 = ProductionOption({RELATION_NT});
             options->push_back(option2);
-            option3 = ProductionOption({RELATION_NT});
-            options->push_back(option3);
             break;
-        case RELATION_NT:
-            option1 = ProductionOption({RELATION_NT, LESSTHAN_OP_T, TERM_NT});
+        case ARITH_OP_RECURSE_NT:
+            option1 = ProductionOption({PLUS_OP_T, RELATION_NT, ARITH_OP_RECURSE_NT});
             options->push_back(option1);
-            option2 = ProductionOption({RELATION_NT, GREATER_EQUAL_OP_T, TERM_NT});
+            option2 = ProductionOption({MINUS_OP_T, RELATION_NT, ARITH_OP_RECURSE_NT});
             options->push_back(option2);
-            option3 = ProductionOption({RELATION_NT, LESS_EQUAL_OP_T, TERM_NT});
+        case RELATION_NT:
+            option1 = ProductionOption({TERM_NT, RELATION_RECURSE_NT});
+            options->push_back(option1);
+            option2 = ProductionOption({TERM_NT});
+            options->push_back(option2);
+            break;
+        case RELATION_RECURSE_NT:
+            option1 = ProductionOption({LESSTHAN_OP_T, TERM_NT, RELATION_RECURSE_NT});
+            options->push_back(option1);
+            option2 = ProductionOption({GREATER_EQUAL_OP_T, TERM_NT, RELATION_RECURSE_NT});
+            options->push_back(option2);
+            option3 = ProductionOption({LESS_EQUAL_OP_T, TERM_NT, RELATION_RECURSE_NT});
             options->push_back(option3);
-            option4 = ProductionOption({RELATION_NT, GREATERTHAN_OP_T, TERM_NT});
+            option4 = ProductionOption({GREATERTHAN_OP_T, TERM_NT, RELATION_RECURSE_NT});
             options->push_back(option4);
-            option5 = ProductionOption({RELATION_NT, EQUALITY_OP_T, TERM_NT});
+            option5 = ProductionOption({EQUALITY_OP_T, TERM_NT, RELATION_RECURSE_NT});
             options->push_back(option5);
-            option6 = ProductionOption({RELATION_NT, INEQUALITY_OP_T, TERM_NT});
+            option6 = ProductionOption({INEQUALITY_OP_T, TERM_NT, RELATION_RECURSE_NT});
             options->push_back(option6);
-            option7 = ProductionOption({TERM_NT});
-            options->push_back(option7);
             break;
         case TERM_NT:
-            option1 = ProductionOption({TERM_NT, MULTIPLY_OP_T, FACTOR_NT});
+            option1 = ProductionOption({FACTOR_NT, TERM_RECURSE_NT});
             options->push_back(option1);
-            option2 = ProductionOption({TERM_NT, DIVIDE_OP_T, FACTOR_NT});
+            option2 = ProductionOption({FACTOR_NT});
             options->push_back(option2);
-            option3 = ProductionOption({FACTOR_NT});
-            options->push_back(option3);
+            break;
+        case TERM_RECURSE_NT:
+            option1 = ProductionOption({MULTIPLY_OP_T, FACTOR_NT, TERM_RECURSE_NT});
+            options->push_back(option1);
+            option2 = ProductionOption({DIVIDE_OP_T, FACTOR_NT, TERM_RECURSE_NT});
+            options->push_back(option2);
             break;
         case FACTOR_NT:
             option1 = ProductionOption({OPEN_PARENTHESIS_T, EXPRESSION_NT, CLOSE_PARENTHESIS_T});
@@ -299,10 +310,13 @@ ProductionOption choose_production(std::vector<ProductionOption>* productionOpti
                 std::vector<int> doubleMatchIndexes;
                 for(int i=0; i<matchIndexes.size(); i++){
                     int matchIndex = matchIndexes[i];
-                    if(productionOptions->at(matchIndex).tokens.at(1) == lookaheadToken->type){
-                        //std::cout<<"Double token match found at option index " << std::to_string(matchIndex)<<"\n";
-                        doubleMatchIndexes.push_back(matchIndex);
+                    if(productionOptions->at(matchIndex).tokens.size() > 1){
+                        if(productionOptions->at(matchIndex).tokens.at(1) == lookaheadToken->type){
+                            //std::cout<<"Double token match found at option index " << std::to_string(matchIndex)<<"\n";
+                            doubleMatchIndexes.push_back(matchIndex);
+                        }
                     }
+
                 }
                 if(doubleMatchIndexes.size() == 0){
                     return productionOptions->at(matchIndexes[failedAttempts]);
@@ -373,12 +387,6 @@ int parse_nonterminal(ParseTreeNode* node, std::vector<Token*>* encounteredToken
         std::vector<ProductionOption>* productionOptions = get_production_options(node->type);
         int failedAttempts = 0;
         while(failedAttempts < productionOptions->size()){
-            /*if(node->type == VARIABLE_DECLARATION_NT){
-                std::cout<<"VARIABLE_DELCARATION_NT has production options: \n";
-                for(int i=0; i<productionOptions->size(); i++){
-                    productionOptions->at(i).print_tokens_in_option();
-                }
-            } */
             ProductionOption optionToTry = choose_production(productionOptions, 
                 encounteredTokens, currentTokenIndex, failedAttempts, scannerParams);
             std::cout<<"Node of type " << TokenTools::token_type_to_string(node->type) << " is trying ";
@@ -406,7 +414,7 @@ int parse_node(ParseTreeNode* node, std::vector<Token*>* encounteredTokens,
         std::cout<<"Parsing node of type " << TokenTools::token_type_to_string(node->type) << 
         ". Current token index is " << std::to_string(currentTokenIndex) << "\n";
         std::cout<<"Made it to line "<<std::to_string(scannerParams->file->get_line_count())<<"\n";
-        if(node->type == BEGIN_T){
+        if(node->type == NAME_NT){
             std::cout<<"Here";
         }
         if(node->type < 42){
