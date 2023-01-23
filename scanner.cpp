@@ -6,15 +6,58 @@ Output: A stream of tokens to parse
 #include <map>
 #include "scanner.h"
 
-Token* match_token(std::string* buffer, SymbolTable* symbolTable){
-    Token* matched_token = symbolTable->mapGet(buffer);
-    if(matched_token != nullptr){
-        return matched_token;
+bool check_if_number(std::string tokenString){
+    std::string::const_iterator it = tokenString.begin();
+    bool decimalEncountered = false;
+    while (it != tokenString.end()){
+        if(*it == '.'){
+            if(decimalEncountered == true){
+                return false;
+            }
+            else{
+                decimalEncountered = true;
+            }
+        }
+        else if(isdigit(*it)){
+            it++;
+        }
+        else{
+            return false;
+        }
+    }
+    return true;
+}
+
+bool check_if_string(std::string tokenString){
+    if(tokenString[0] == *"\"" && tokenString.back() == *"\""){
+        return true;
     }
     else{
-        symbolTable->mapSet(buffer);
-        return symbolTable->mapGet(buffer);
+        return false;
     }
+}
+
+Token* match_token(std::string* buffer, SymbolTable* symbolTable){
+    Token* matched_token;
+    if(check_if_number(*buffer)){
+        matched_token = new Token(NUMBER_NT, *buffer);
+        return matched_token;
+    }
+    else if(check_if_string(*buffer)){
+        matched_token = new Token(STRING_NT, *buffer);
+    }
+    else{
+        matched_token = symbolTable->mapGet(buffer);
+        if(matched_token != nullptr){
+            return matched_token;
+        }
+        else{
+            symbolTable->mapSet(buffer);
+            return symbolTable->mapGet(buffer);
+        }
+    }
+
+
 };
 
 Token* scan(struct ScannerParams* scannerParams){

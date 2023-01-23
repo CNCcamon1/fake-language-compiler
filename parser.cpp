@@ -149,7 +149,7 @@ std::vector<ProductionOption>* get_production_options(TokenType type){
             option1 = ProductionOption({AND_OP_T, ARITH_OP_NT});
             options->push_back(option1);
             option2 = ProductionOption({OR_OP_T, ARITH_OP_NT});
-            options->push_back(option3);
+            options->push_back(option2);
             break;
         case ARITH_OP_NT:
             option1 = ProductionOption({RELATION_NT, ARITH_OP_RECURSE_NT});
@@ -226,9 +226,6 @@ std::vector<ProductionOption>* get_production_options(TokenType type){
             option2 = ProductionOption({EXPRESSION_NT});
             options->push_back(option2);
             break;
-        case STRING_NT:
-            option1 = ProductionOption({QUOTE_T, STRING_LITERAL_NT, QUOTE_T});
-            options->push_back(option1);
 
         default:
             break;
@@ -239,28 +236,6 @@ std::vector<ProductionOption>* get_production_options(TokenType type){
 
 int parse_node(ParseTreeNode* node, std::vector<Token*>* encounteredTokens, 
     int currentTokenIndex, struct ScannerParams* scannerParams);
-
-bool check_if_number(std::string tokenString){
-    std::string::const_iterator it = tokenString.begin();
-    bool decimalEncountered = false;
-    while (it != tokenString.end()){
-        if(*it == '.'){
-            if(decimalEncountered == true){
-                return false;
-            }
-            else{
-                decimalEncountered = true;
-            }
-        }
-        else if(isdigit(*it)){
-            it++;
-        }
-        else{
-            return false;
-        }
-    }
-    return true;
-}
 
 Token* get_token_at_index(std::vector<Token*>* encounteredTokens, int currentTokenIndex,
     struct ScannerParams* scannerParams){
@@ -363,6 +338,14 @@ int parse_identifier(ParseTreeNode* node, std::vector<Token*>* encounteredTokens
         return currentTokenIndex;
 }
 
+int parse_number_or_string(ParseTreeNode* node, std::vector<Token*>* encounteredTokens, 
+    int currentTokenIndex, struct ScannerParams* scannerParams){ 
+        Token* currentToken = get_token_at_index(encounteredTokens, currentTokenIndex, scannerParams);
+        node->data = currentToken->tokenString;
+        std::cout<<"Processed string or number " << currentToken->tokenString << "\n";
+        return currentTokenIndex;
+}
+
 int try_production_option(ParseTreeNode* node, std::vector<Token*>* encounteredTokens, 
     int currentTokenIndex, struct ScannerParams* scannerParams, ProductionOption optionToTry){
         //Populate Children
@@ -414,7 +397,7 @@ int parse_node(ParseTreeNode* node, std::vector<Token*>* encounteredTokens,
         std::cout<<"Parsing node of type " << TokenTools::token_type_to_string(node->type) << 
         ". Current token index is " << std::to_string(currentTokenIndex) << "\n";
         std::cout<<"Made it to line "<<std::to_string(scannerParams->file->get_line_count())<<"\n";
-        if(node->type == NAME_NT){
+        if(node->type == THEN_T){
             std::cout<<"Here";
         }
         if(node->type < 42){
@@ -422,6 +405,12 @@ int parse_node(ParseTreeNode* node, std::vector<Token*>* encounteredTokens,
         }
         else if(node->type == IDENTIFIER_NT){
             return parse_identifier(node, encounteredTokens, currentTokenIndex, scannerParams);
+        }
+        else if(node->type == NUMBER_NT){
+            return parse_number_or_string(node, encounteredTokens, currentTokenIndex, scannerParams);
+        }
+        else if(node->type == STRING_NT){
+            return parse_number_or_string(node, encounteredTokens, currentTokenIndex, scannerParams);
         }
         else{
             return parse_nonterminal(node, encounteredTokens, currentTokenIndex, scannerParams);
