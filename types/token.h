@@ -84,8 +84,12 @@ enum TokenType{
     RELATION_RECURSE_NT = 77,
     TERM_RECURSE_NT = 78,
     BOUND_OBJ_NT = 79,
-    END_OF_FILE = 80,
-    NONE = 81
+    PARAMETER_LIST_OBJ_NT = 80,
+    ARGUMENT_LIST_OBJ_NT = 81,
+    ELSE_BLOCK_NT = 82,
+    EXPRESSION_BLOCK_OBJ_NT = 83,
+    END_OF_FILE = 84,
+    NONE = 85
 };
 
 class TokenTools{
