@@ -14,6 +14,10 @@ std::vector<ProductionOption>* get_production_options(TokenType type){
     ProductionOption option7;
     ProductionOption option8;
     ProductionOption option9;
+    ProductionOption option10;
+    ProductionOption option11;
+    ProductionOption option12;
+
     switch(type){
         case PROGRAM_NT:
             option1 = ProductionOption({PROGRAM_HEADER_NT, PROGRAM_BODY_NT, PERIOD_T, END_OF_FILE});
@@ -150,6 +154,10 @@ std::vector<ProductionOption>* get_production_options(TokenType type){
             options->push_back(option1);
             option2 = ProductionOption({OR_OP_T, ARITH_OP_NT});
             options->push_back(option2);
+            option3 = ProductionOption({AND_OP_T, ARITH_OP_NT, EXPRESSION_RECURSE_NT});
+            options->push_back(option3);
+            option4 = ProductionOption({OR_OP_T, ARITH_OP_NT, EXPRESSION_RECURSE_NT});
+            options->push_back(option4);
             break;
         case ARITH_OP_NT:
             option1 = ProductionOption({RELATION_NT, ARITH_OP_RECURSE_NT});
@@ -162,6 +170,10 @@ std::vector<ProductionOption>* get_production_options(TokenType type){
             options->push_back(option1);
             option2 = ProductionOption({MINUS_OP_T, RELATION_NT, ARITH_OP_RECURSE_NT});
             options->push_back(option2);
+            option3 = ProductionOption({PLUS_OP_T, RELATION_NT});
+            options->push_back(option3);
+            option3 = ProductionOption({MINUS_OP_T, RELATION_NT});
+            options->push_back(option3);
         case RELATION_NT:
             option1 = ProductionOption({TERM_NT, RELATION_RECURSE_NT});
             options->push_back(option1);
@@ -181,6 +193,18 @@ std::vector<ProductionOption>* get_production_options(TokenType type){
             options->push_back(option5);
             option6 = ProductionOption({INEQUALITY_OP_T, TERM_NT, RELATION_RECURSE_NT});
             options->push_back(option6);
+            option7 = ProductionOption({LESSTHAN_OP_T, TERM_NT});
+            options->push_back(option7);
+            option8 = ProductionOption({GREATER_EQUAL_OP_T, TERM_NT});
+            options->push_back(option8);
+            option9 = ProductionOption({LESS_EQUAL_OP_T, TERM_NT});
+            options->push_back(option9);
+            option10 = ProductionOption({GREATERTHAN_OP_T, TERM_NT});
+            options->push_back(option10);
+            option11 = ProductionOption({EQUALITY_OP_T, TERM_NT});
+            options->push_back(option11);
+            option12 = ProductionOption({INEQUALITY_OP_T, TERM_NT});
+            options->push_back(option12);
             break;
         case TERM_NT:
             option1 = ProductionOption({FACTOR_NT, TERM_RECURSE_NT});
@@ -193,6 +217,10 @@ std::vector<ProductionOption>* get_production_options(TokenType type){
             options->push_back(option1);
             option2 = ProductionOption({DIVIDE_OP_T, FACTOR_NT, TERM_RECURSE_NT});
             options->push_back(option2);
+            option3 = ProductionOption({MULTIPLY_OP_T, FACTOR_NT});
+            options->push_back(option3);
+            option4 = ProductionOption({DIVIDE_OP_T, FACTOR_NT});
+            options->push_back(option4);
             break;
         case FACTOR_NT:
             option1 = ProductionOption({OPEN_PARENTHESIS_T, EXPRESSION_NT, CLOSE_PARENTHESIS_T});
@@ -375,7 +403,8 @@ int parse_nonterminal(ParseTreeNode* node, std::vector<Token*>* encounteredToken
             std::cout<<"Node of type " << TokenTools::token_type_to_string(node->type) << " is trying ";
             optionToTry.print_tokens_in_option();
             try{
-                return try_production_option(node, encounteredTokens, currentTokenIndex, scannerParams, optionToTry);
+                int success = try_production_option(node, encounteredTokens, currentTokenIndex, scannerParams, optionToTry);
+                return success;
             }
             catch(TerminalMismatchException e){
                 std::cout<<"Incrementing failed attempts on node with type " << TokenTools::token_type_to_string(node->type) << "\n";
@@ -397,7 +426,7 @@ int parse_node(ParseTreeNode* node, std::vector<Token*>* encounteredTokens,
         std::cout<<"Parsing node of type " << TokenTools::token_type_to_string(node->type) << 
         ". Current token index is " << std::to_string(currentTokenIndex) << "\n";
         std::cout<<"Made it to line "<<std::to_string(scannerParams->file->get_line_count())<<"\n";
-        if(node->type == THEN_T){
+        if(node->type == IF_STATEMENT_NT){
             std::cout<<"Here";
         }
         if(node->type < 42){
