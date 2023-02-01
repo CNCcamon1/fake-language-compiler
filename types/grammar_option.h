@@ -4,7 +4,7 @@
 #define GRAMMAR_OPTION
 
 enum OptionType{
-    NONE = 0,
+    NONE_C = 0,
     ARRAY_C = 1,
     OPTIONAL_C = 2,
 };
@@ -19,7 +19,7 @@ class GrammarOption{
         };
         GrammarOption(TokenType typeInput){
             tokenType = typeInput;
-            optionType = NONE;
+            optionType = NONE_C;
         };
 };
 #endif

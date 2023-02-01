@@ -84,7 +84,7 @@ class Grammar{
 
         std::vector<TokenType> get_valid_first_tokens(TokenType nonterminalType){
             std::vector<TokenType> validFirstTokens;
-            std::vector<std::vector<GrammarOption*>>* derivationOptionsForNonterminal = &grammarOptionsTable[nonterminalType];
+            std::vector<std::vector<GrammarOption*>>* derivationOptionsForNonterminal = &grammarOptionsTable[nonterminalType-43];
             for(int i=0; i<derivationOptionsForNonterminal->size(); i++){
                 //For each derivation option for this nonterminal
                 GrammarOption* first = derivationOptionsForNonterminal->at(i).at(0);

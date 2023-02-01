@@ -5,6 +5,10 @@
 #include "types/grammar.h"
 #include "scanner.h"
 
+int parse_node(ParseTreeNode* node, ScannerParams* scannerParams, 
+    std::vector<Token*>* encounteredTokens, int currentTokenIndex,
+    Grammar* grammar);
+
 Token* get_token_at_index(std::vector<Token*>* encounteredTokens, int currentTokenIndex,
     struct ScannerParams* scannerParams){
 
