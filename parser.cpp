@@ -27,12 +27,13 @@ Token* get_token_at_index(std::vector<Token*>* encounteredTokens, int currentTok
 int parse_nonterminal(ParseTreeNode* node, ScannerParams* scannerParams, 
     std::vector<Token*>* encounteredTokens, int currentTokenIndex,
     Grammar* grammar){
+        std::cout<<"Parsing node of type " << TokenTools::token_type_to_string(node->type) << "\n";
         std::vector<std::vector<GrammarOption*>>* possibleChildrenArrangements = grammar->get_possible_children_for_type(node->type);
         for(int i=0; i<possibleChildrenArrangements->size(); i++){
             //For each derivation option for the nonterminal
             Token* currentToken = get_token_at_index(encounteredTokens, currentTokenIndex, scannerParams);
             //First check if the current token is a valid first choice for this derivation option
-            if(grammar->child_choice_valid(possibleChildrenArrangements->at(i).at(0)->tokenType, currentToken)){
+            if(grammar->derivation_choice_valid(&possibleChildrenArrangements->at(i), currentToken)){
                 //If it is, use this derivation option and parse it
                 std::vector<GrammarOption*>* chosenDerivationOption = &possibleChildrenArrangements->at(i);
                 int grammarOptionIndex = 0;
@@ -69,6 +70,7 @@ int parse_nonterminal(ParseTreeNode* node, ScannerParams* scannerParams,
 int parse_identifier(ParseTreeNode* node, ScannerParams* scannerParams, 
     std::vector<Token*>* encounteredTokens, int currentTokenIndex){
         Token* currentToken = get_token_at_index(encounteredTokens, currentTokenIndex, scannerParams);
+        std::cout<<"Parsing identifier " << currentToken->tokenString << "\n";
         node->data = currentToken->tokenString;
         return currentTokenIndex+1;
 }
@@ -77,6 +79,7 @@ int parse_node(ParseTreeNode* node, ScannerParams* scannerParams,
     std::vector<Token*>* encounteredTokens, int currentTokenIndex,
     Grammar* grammar){
         if(grammar->is_terminal(node->type)){
+            std::cout<<"Parsing terminal of type " << TokenTools::token_type_to_string(node->type) << "\n";
             return currentTokenIndex+1;
         }
         else if(node->type == IDENTIFIER_NT){

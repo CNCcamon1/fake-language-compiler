@@ -8,12 +8,12 @@ class Grammar{
 
         //Returns whether or not the current token is a valid first token for the given type
         bool child_choice_valid(TokenType type, Token* currentToken){
-            if(is_terminal(type)){
+            if(is_terminal_or_literal(type)){
                 return type == currentToken->type;
             }
             else{
                 bool firstValid = false;
-                std::vector<TokenType>* firstPossibilities = &firstTokenTable[type];
+                std::vector<TokenType>* firstPossibilities = &firstTokenTable[type-43];
                 for(int i=0; i<firstPossibilities->size(); i++){
                     if(firstPossibilities->at(i) == currentToken->type){
                         firstValid = true;
@@ -25,8 +25,29 @@ class Grammar{
 
         }
 
+        bool derivation_choice_valid(std::vector<GrammarOption*>* derivation, Token* currentToken){
+            bool checkedAll = false;
+            int i=0;
+            while(checkedAll == false){
+                bool valid = child_choice_valid(derivation->at(i)->tokenType, currentToken);
+                if(valid == true){
+                    return true;
+                }
+                else if(derivation->at(i)->optionType == OPTIONAL_C){
+                    i++;
+                }
+                else{
+                    return false;
+                }
+            }
+        }
+
         bool is_terminal(TokenType currentType){
             return currentType < 43;
+        }
+
+        bool is_terminal_or_literal(TokenType currentType){
+            return currentType < 43 || currentType == IDENTIFIER_NT || currentType == STRING_LITERAL_NT || currentType == NUMBER_NT;
         }
 
         void build_grammar(){
@@ -87,15 +108,27 @@ class Grammar{
             std::vector<std::vector<GrammarOption*>>* derivationOptionsForNonterminal = &grammarOptionsTable[nonterminalType-43];
             for(int i=0; i<derivationOptionsForNonterminal->size(); i++){
                 //For each derivation option for this nonterminal
-                std::vector<GrammarOption*> test = derivationOptionsForNonterminal->at(i);
-                GrammarOption* first = derivationOptionsForNonterminal->at(i).at(0);
-                if(is_terminal(first->tokenType) || first->tokenType == IDENTIFIER_NT || first->tokenType == NUMBER_NT || first->tokenType == STRING_LITERAL_NT){
-                    validFirstTokens.push_back(first->tokenType);
+                std::vector<GrammarOption*>* derivationOption = &derivationOptionsForNonterminal->at(i);
+                bool foundAll = false;
+                int j = 0;
+                while(foundAll == false){
+                    GrammarOption* option = derivationOptionsForNonterminal->at(i).at(j);
+                    if(is_terminal_or_literal(option->tokenType)){
+                        validFirstTokens.push_back(option->tokenType);
+                    }
+                    else{
+                        std::vector<TokenType> typeOptionsForNonterminal = get_valid_first_tokens(option->tokenType);
+                        validFirstTokens.insert(validFirstTokens.end(), typeOptionsForNonterminal.begin(), typeOptionsForNonterminal.end());
+                    }
+
+                    if(option->optionType != OPTIONAL_C){
+                        foundAll = true;
+                    }
+                    else{
+                        j++;
+                    }
                 }
-                else{
-                    std::vector<TokenType> typeOptionsForNonterminal = get_valid_first_tokens(first->tokenType);
-                    validFirstTokens.insert(validFirstTokens.end(), typeOptionsForNonterminal.begin(), typeOptionsForNonterminal.end());
-                }
+
             }
 
             return validFirstTokens;
@@ -112,7 +145,11 @@ class Grammar{
                 else{
                     firstTokens = get_valid_first_tokens(static_cast<TokenType>(i+43));
                 }
-                
+                std::cout<<"Valid first tokens for type " << TokenTools::token_type_to_string(type) <<": \n";
+                for(int i=0; i<firstTokens.size(); i++){
+                    std::cout<< TokenTools::token_type_to_string(firstTokens[i]) << ",";
+                }
+                std::cout<<"\n";
                 firstTokenTable.push_back(firstTokens);
             }
         }
