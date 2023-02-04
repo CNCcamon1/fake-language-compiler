@@ -13,6 +13,10 @@ class SymbolTable{
         void mapSet(std::string* string){
             map[to_lower_case(string)] = new Token(IDENTIFIER_NT, *string);
         }
+
+        void mapSet(std::string* string, TokenMark mark){
+            map[to_lower_case(string)] = new Token(IDENTIFIER_NT, *string, mark);
+        }
         Token* mapGet(std::string* key){
             if(map[to_lower_case(key)]){
                 return map[to_lower_case(key)];
@@ -71,14 +75,14 @@ class SymbolTable{
             map["true"] = new Token(TRUE_T);
             map["false"] = new Token(FALSE_T);
             map["\""] = new Token(QUOTE_T);
-            map["getBool"] = new Token(IDENTIFIER_NT);
-            map["getInteger"] = new Token(IDENTIFIER_NT);
-            map["getFloat"] = new Token(IDENTIFIER_NT);
-            map["getString"] = new Token(IDENTIFIER_NT);
-            map["putBool"] = new Token(IDENTIFIER_NT);
-            map["putInteger"] = new Token(IDENTIFIER_NT);
-            map["putFloat"] = new Token(IDENTIFIER_NT);
-            map["putString"] = new Token(IDENTIFIER_NT);
+            map["getbool"] = new Token(IDENTIFIER_NT, "getBool", PROCEDURE_M);
+            map["getinteger"] = new Token(IDENTIFIER_NT, "getInteger", PROCEDURE_M);
+            map["getfloat"] = new Token(IDENTIFIER_NT, "getFloat", PROCEDURE_M);
+            map["getstring"] = new Token(IDENTIFIER_NT, "getString", PROCEDURE_M);
+            map["putbool"] = new Token(IDENTIFIER_NT, "putBool", PROCEDURE_M);
+            map["putinteger"] = new Token(IDENTIFIER_NT, "putInteger", PROCEDURE_M);
+            map["putfloat"] = new Token(IDENTIFIER_NT, "putFloat", PROCEDURE_M);
+            map["putstring"] = new Token(IDENTIFIER_NT, "putString", PROCEDURE_M);
         }
 };
 

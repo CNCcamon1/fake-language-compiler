@@ -12,6 +12,9 @@ class Grammar{
                 return type == currentToken->type;
             }
             else{
+                if(type == PROCEDURE_CALL_NT && currentToken->tokenMark != PROCEDURE_M){
+                    return false;
+                }
                 bool firstValid = false;
                 std::vector<TokenType>* firstPossibilities = &firstTokenTable[type-43];
                 for(int i=0; i<firstPossibilities->size(); i++){
@@ -56,7 +59,7 @@ class Grammar{
     
     private:
         std::vector<std::vector<std::vector<GrammarOption*>>> grammarOptionsTable {
-            {{new GrammarOption(PROGRAM_HEADER_NT), new GrammarOption(PROGRAM_BODY_NT)}}, //PROGRAM_NT
+            {{new GrammarOption(PROGRAM_HEADER_NT), new GrammarOption(PROGRAM_BODY_NT), new GrammarOption(PERIOD_T)}}, //PROGRAM_NT
             {{new GrammarOption(PROGRAM_T), new GrammarOption(IDENTIFIER_NT), new GrammarOption(IS_T)}}, //PROGRAM_HEADER_NT
             {{new GrammarOption(DECLARATION_OBJ_NT, ARRAY_C), new GrammarOption(BEGIN_T), new GrammarOption(STATEMENT_OBJ_NT, ARRAY_C), new GrammarOption(END_T), new GrammarOption(PROGRAM_T)}}, //PROGRAM_BODY_NT
             {{}}, //IDENTIFIER_NT
@@ -75,8 +78,8 @@ class Grammar{
             {{new GrammarOption(IF_T), new GrammarOption(OPEN_PARENTHESIS_T), new GrammarOption(EXPRESSION_NT), new GrammarOption(CLOSE_PARENTHESIS_T), new GrammarOption(THEN_T), new GrammarOption(STATEMENT_OBJ_NT, ARRAY_C), new GrammarOption(ELSE_BLOCK_NT, OPTIONAL_C), new GrammarOption(END_T), new GrammarOption(IF_T)}}, //IF_STATEMENT_NT
             {{new GrammarOption(FOR_T), new GrammarOption(OPEN_PARENTHESIS_T), new GrammarOption(ASSIGNMENT_STATEMENT_NT), new GrammarOption(SEMICOLON_T), new GrammarOption(EXPRESSION_NT), new GrammarOption(CLOSE_PARENTHESIS_T), new GrammarOption(STATEMENT_OBJ_NT, ARRAY_C), new GrammarOption(END_T), new GrammarOption(FOR_T)}}, //LOOP_STATEMENT_NT
             {{new GrammarOption(RETURN_T), new GrammarOption(EXPRESSION_NT)}}, //RETURN_STATEMENT_NT
-            {{new GrammarOption(IDENTIFIER_NT), new GrammarOption(OPEN_PARENTHESIS_T), new GrammarOption(ARGUMENT_LIST_NT, OPTIONAL_C)}}, //PROCEDURE_CALL_NT
-            {{new GrammarOption(EXPRESSION_NT), new GrammarOption(ARGUMENT_LIST_OBJ_NT)}}, //ARGUMENT_LIST_NT
+            {{new GrammarOption(IDENTIFIER_NT), new GrammarOption(OPEN_PARENTHESIS_T), new GrammarOption(ARGUMENT_LIST_NT, OPTIONAL_C), new GrammarOption(CLOSE_PARENTHESIS_T)}}, //PROCEDURE_CALL_NT
+            {{new GrammarOption(EXPRESSION_NT), new GrammarOption(ARGUMENT_LIST_OBJ_NT, OPTIONAL_C)}}, //ARGUMENT_LIST_NT
             {{new GrammarOption(IDENTIFIER_NT), new GrammarOption(EXPRESSION_BLOCK_OBJ_NT, OPTIONAL_C)}}, //DESTINATION_NT
             {{new GrammarOption(NOT_OP_T, OPTIONAL_C), new GrammarOption(ARITH_OP_NT), new GrammarOption(EXPRESSION_RECURSE_NT, OPTIONAL_C)}}, //EXPRESSION_NT
             {{new GrammarOption(RELATION_NT), new GrammarOption(ARITH_OP_RECURSE_NT, OPTIONAL_C)}}, //ARITH_OP_NT

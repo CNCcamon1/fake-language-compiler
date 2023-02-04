@@ -11,7 +11,9 @@ int parse_node(ParseTreeNode* node, ScannerParams* scannerParams,
 
 Token* get_token_at_index(std::vector<Token*>* encounteredTokens, int currentTokenIndex,
     struct ScannerParams* scannerParams){
-
+        /*for(int i=0; i<encounteredTokens->size(); i++){
+            std::cout<<std::to_string(i)<<": "<<TokenTools::token_type_to_string(encounteredTokens->at(i)->type)<<"\n";
+        }*/
         Token* currentToken;
         try{
             currentToken = encounteredTokens->at(currentTokenIndex);
@@ -19,6 +21,7 @@ Token* get_token_at_index(std::vector<Token*>* encounteredTokens, int currentTok
         catch(std::out_of_range e){
             encounteredTokens->push_back(scan(scannerParams));
             currentToken = encounteredTokens->at(currentTokenIndex);
+            std::cout<<"Scanned new token of type " <<TokenTools::token_type_to_string(currentToken->type) << " at index " << std::to_string(currentTokenIndex) << "\n";
         }
         return currentToken;
 
@@ -28,6 +31,9 @@ int parse_nonterminal(ParseTreeNode* node, ScannerParams* scannerParams,
     std::vector<Token*>* encounteredTokens, int currentTokenIndex,
     Grammar* grammar){
         std::cout<<"Parsing node of type " << TokenTools::token_type_to_string(node->type) << "\n";
+        if(node->type == NAME_NT){
+            std::cout<<"Here";
+        }
         std::vector<std::vector<GrammarOption*>>* possibleChildrenArrangements = grammar->get_possible_children_for_type(node->type);
         for(int i=0; i<possibleChildrenArrangements->size(); i++){
             //For each derivation option for the nonterminal
@@ -48,6 +54,11 @@ int parse_nonterminal(ParseTreeNode* node, ScannerParams* scannerParams,
                         node->add_child(newChild);
                         if(currentGrammarOption->optionType != ARRAY_C){
                             grammarOptionIndex++;
+                        }
+
+                        if(node->type == PROCEDURE_HEADER_NT && newChild->type == IDENTIFIER_NT){
+                            std::cout<<"Marking identifier " << newChild->data << " as a procedure name. \n";
+                            scannerParams->symbolTable->mapSet(&newChild->data, PROCEDURE_M);
                         }
                     }
                     else if(currentGrammarOption->optionType == ARRAY_C || currentGrammarOption->optionType == OPTIONAL_C){

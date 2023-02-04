@@ -92,6 +92,11 @@ enum TokenType{
     NONE = 85
 };
 
+enum TokenMark{
+    NONE_M = 0,
+    PROCEDURE_M = 1
+};
+
 class TokenTools{
     public:
         static std::string token_type_to_string(TokenType type){
@@ -113,12 +118,18 @@ class Token{
     public:
         enum TokenType type;
         std::string tokenString;
+        enum TokenMark tokenMark;
         Token(TokenType typeInput){
             type = typeInput;
         };
         Token(TokenType typeInput, std::string tokenStringInput){
             type = typeInput;
             tokenString = tokenStringInput;
+        }
+        Token(TokenType typeInput, std::string tokenStringInput, TokenMark tokenMarkInput){
+            type = typeInput;
+            tokenString = tokenStringInput;
+            tokenMark = tokenMarkInput;
         }
 };
 

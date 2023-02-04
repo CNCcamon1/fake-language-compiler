@@ -64,6 +64,7 @@ Token* scan(struct ScannerParams* scannerParams){
     Token* nextToken = nullptr;
     std::string* buffer = new std::string("");
     if(scannerParams->nextToken != NONE){
+        std::cout<<"Returning stored next token of type "<<TokenTools::token_type_to_string(scannerParams->nextToken) << "\n";
         nextToken = new Token(scannerParams->nextToken);
         scannerParams->nextToken = NONE;
     }
@@ -87,11 +88,15 @@ Token* scan(struct ScannerParams* scannerParams){
                     }
                     else{
                         *buffer += nextChar;
+                        if(*buffer == ";"){
+                            return new Token(SEMICOLON_T);
+                        }
                         std::string lastCharacter = buffer->substr(buffer->size() - 1);
                         if(lastCharacter == " " || lastCharacter == "\n" || lastCharacter == ";" 
                         || lastCharacter == "(" || lastCharacter == "[" || lastCharacter == ")"
-                        || lastCharacter == "]"){
+                        || lastCharacter == "]" || lastCharacter == "."){
                             if(lastCharacter == ";"){
+                                std::cout<<"Next token should be a semicolon \n";
                                 scannerParams->nextToken = SEMICOLON_T;
                             }
                             else if(lastCharacter == "("){
@@ -101,10 +106,14 @@ Token* scan(struct ScannerParams* scannerParams){
                                 scannerParams->nextToken = OPEN_BRACKET_T;
                             }
                             else if(lastCharacter == ")"){
+                                std::cout<<"Next token should be a closed parenthesis \n";
                                 scannerParams->nextToken = CLOSE_PARENTHESIS_T;
                             }
                             else if(lastCharacter == "]"){
                                 scannerParams->nextToken = CLOSE_BRACKET_T;
+                            }
+                            else if(lastCharacter == "."){
+                                scannerParams->nextToken = PERIOD_T;
                             }
                             //It is the end of a token
                             std::string token_string = buffer->substr(0, (buffer->size() - 1));
