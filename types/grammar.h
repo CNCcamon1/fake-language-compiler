@@ -87,6 +87,7 @@ class Grammar{
             std::vector<std::vector<GrammarOption*>>* derivationOptionsForNonterminal = &grammarOptionsTable[nonterminalType-43];
             for(int i=0; i<derivationOptionsForNonterminal->size(); i++){
                 //For each derivation option for this nonterminal
+                std::vector<GrammarOption*> test = derivationOptionsForNonterminal->at(i);
                 GrammarOption* first = derivationOptionsForNonterminal->at(i).at(0);
                 if(is_terminal(first->tokenType) || first->tokenType == IDENTIFIER_NT || first->tokenType == NUMBER_NT || first->tokenType == STRING_LITERAL_NT){
                     validFirstTokens.push_back(first->tokenType);
@@ -103,7 +104,15 @@ class Grammar{
         void build_first_token_table(){
             for(int i=0; i<grammarOptionsTable.size(); i++){
                 //For each nonterminal type in the grammar
-                std::vector<TokenType> firstTokens = get_valid_first_tokens(static_cast<TokenType>(i));
+                TokenType type = static_cast<TokenType>(i+43);
+                std::vector<TokenType> firstTokens;
+                if(type == IDENTIFIER_NT || type == STRING_LITERAL_NT || type == NUMBER_NT || type == STRING_NT){
+                    firstTokens = {};
+                }
+                else{
+                    firstTokens = get_valid_first_tokens(static_cast<TokenType>(i+43));
+                }
+                
                 firstTokenTable.push_back(firstTokens);
             }
         }
