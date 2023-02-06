@@ -1,7 +1,7 @@
 #include "parser.h"
 
 void compile_file(){
-    InFile* file = new InFile("testPgms/correct/math.src");
+    InFile* file = new InFile("testPgms/correct/multipleProcs.src");
     SymbolTable* symbolTable = new SymbolTable();
     CommentStatus* commentStatus = new CommentStatus();
     ErrorReporter* errorReporter = new ErrorReporter();
@@ -13,6 +13,8 @@ void compile_file(){
     scannerParams->errorReporter = errorReporter;
     scannerParams->nextToken = NONE;
     ParseTree* parsedTree = parse_file(scannerParams);
+    std::cout<<"Successfully parsed file. \n";
+    parsedTree->rootNode->print(0);
 };
 
 int main(int argc, char** argv){

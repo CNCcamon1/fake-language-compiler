@@ -66,8 +66,8 @@ int parse_nonterminal(ParseTreeNode* node, ScannerParams* scannerParams,
                         grammarOptionIndex++;
                     }
                     else{
-                        //
-                        throw NoValidDerivationsException();
+                        grammarOptionIndex++;
+                        //throw NoValidDerivationsException();
                     }
                 }
 
@@ -117,4 +117,5 @@ ParseTree* parse_file(struct ScannerParams* scannerParams){
         encounteredTokens.push_back(scan(scannerParams));
         encounteredTokens.push_back(scan(scannerParams));
         parse_node(parsedTree->rootNode, scannerParams, &encounteredTokens, 0, grammar);
+        return parsedTree;
 };

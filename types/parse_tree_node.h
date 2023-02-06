@@ -1,4 +1,5 @@
 #include <vector>
+#include <iostream>
 #include "token.h"
 
 
@@ -30,6 +31,21 @@ class ParseTreeNode{
                 delete children[i];
             }
             children = {};
+        }
+
+        void print(int level=0){
+            for(int i=0; i<level; i++){
+                std::cout<<"|";
+                std::cout<<"\t";
+            }
+            std::cout<<"Node "<<TokenTools::token_type_to_string(type);
+            if(data != ""){
+                std::cout<<" with data " << data;
+            }
+            std::cout<<"\n";
+            for(int i=0; i<children.size(); i++){
+                children[i]->print(level+1);
+            }
         }
 
     private:
