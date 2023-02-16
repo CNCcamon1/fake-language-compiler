@@ -11,6 +11,10 @@ class ParseTreeNode{
         ParseTreeNode(TokenType typeInput){
             type = typeInput;
         }
+        ParseTreeNode(TokenType typeInput, std::string dataInput){
+            type = typeInput;
+            data = dataInput;
+        }
         TokenType type;
         std::string data;
 

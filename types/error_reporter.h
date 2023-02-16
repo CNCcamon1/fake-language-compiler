@@ -34,10 +34,10 @@ class ErrorReporter{
             errorStatus = false;
         }
         bool errorStatus;
-        void reportError(std::string* message){
+        void reportError(const char* message){
 
         };
-        void reportWarning(std::string* message){
+        void reportWarning(const char* message){
             
         };
 };
