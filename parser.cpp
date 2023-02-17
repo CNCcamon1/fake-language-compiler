@@ -5,13 +5,423 @@
 #include "types/grammar.h"
 #include "scanner.h"
 
-bool parse_number_nt(ScannerParams* scannerParams, Token** currentToken, ErrorReporter* reporter)
+bool parse_if_statement_nt(ScannerParams* scannerParams, Token** currentToken, ErrorReporter* reporter){
+    
+}
+
+bool parse_expression_nt(ScannerParams* scannerParams, Token** currentToken, ErrorReporter* reporter);
+
+bool parse_name_nt(ScannerParams* scannerParams, Token** currentToken, ErrorReporter* reporter){
+    std::cout<<"Parsing NAME_NT \n";
+    if((*currentToken)->type == IDENTIFIER_T){
+        *currentToken = scan(scannerParams);
+        if((*currentToken)->type == OPEN_BRACKET_T){
+            *currentToken = scan(scannerParams);
+            parse_expression_nt(scannerParams, currentToken, reporter);
+            if((*currentToken)->type == CLOSE_BRACKET_T){
+                *currentToken = scan(scannerParams);
+                std::cout<<"Successfully parsed NAME_NT \n";
+                return true;
+            }
+            else{
+                reporter->reportError("Expression must be followed by a closing bracket \n");
+                return false;
+            }
+        }
+        else{
+            std::cout<<"Successfully parsed NAME_NT \n";
+            return true;
+        }
+    }
+    else{
+        reporter->reportError("Name must start with an identifier");
+        return false;
+    }
+}
+
+bool parse_argument_list_nt(ScannerParams* scannerParams, Token** currentToken, ErrorReporter* reporter){
+    std::cout<<"Parsing ARGUMENT_LIST_NT \n";
+    parse_expression_nt(scannerParams, currentToken, reporter);
+    if((*currentToken)->type == COMMA_T){
+        *currentToken = scan(scannerParams);
+        parse_argument_list_nt(scannerParams, currentToken, reporter);
+    }
+    std::cout<<"Successfully parsed ARGUMENT_LIST_NT \n";
+    return true;
+}
+
+bool parse_procedure_call_or_name_nt(ScannerParams* scannerParams, Token** currentToken, ErrorReporter* reporter){
+    std::cout<<"Parsing PROCEDURE_CALL_OR_NAME_NT \n";
+    if((*currentToken)->type == IDENTIFIER_T){
+        *currentToken = scan(scannerParams);
+        if((*currentToken)->type == OPEN_PARENTHESIS_T){
+            *currentToken = scan(scannerParams);
+            parse_argument_list_nt(scannerParams, currentToken, reporter);
+            if((*currentToken)->type == CLOSE_PARENTHESIS_T){
+                *currentToken = scan(scannerParams);
+                std::cout<<"Successfully parsed PROCEDURE_CALL_OR_NAME_NT";
+                return true;
+            }
+            else{
+                reporter->reportError("Argument list must be followed by a closing parenthesis");
+                return false;
+            }
+        }
+        else if((*currentToken)->type == OPEN_BRACKET_T){
+            *currentToken = scan(scannerParams);
+            parse_expression_nt(scannerParams, currentToken, reporter);
+            if((*currentToken)->type == CLOSE_BRACKET_T){
+                *currentToken = scan(scannerParams);
+                std::cout<<"Successfully parsed PROCEDURE_CALL_OR_NAME_NT";
+                return true;
+            }
+            else{
+                reporter->reportError("Expression must be followed by a closing bracket");
+                return false;
+            }
+        }
+        else{
+            std::cout<<"Successfully parsed PROCEDURE_CALL_OR_NAME_NT";
+            return true;
+        }
+    }
+    else{
+        reporter->reportError("Procedure call or name must include an identifier");
+        return false;
+    }
+}
+
+bool parse_factor_nt(ScannerParams* scannerParams, Token** currentToken, ErrorReporter* reporter){
+    std::cout<<"Parsing FACTOR_NT \n";
+    if((*currentToken)->type == OPEN_PARENTHESIS_T){
+        *currentToken = scan(scannerParams);
+        parse_expression_nt(scannerParams, currentToken, reporter);
+        if((*currentToken)->type == CLOSE_PARENTHESIS_T){
+            *currentToken = scan(scannerParams);
+            std::cout<<"Successfully parsed FACTOR_NT \n";
+            return true;
+        }
+        else{
+            reporter->reportError("Expression must be followed by a closing parenthesis");
+            return false;
+        }
+    }
+    else if((*currentToken)->type == IDENTIFIER_T){
+        parse_procedure_call_or_name_nt(scannerParams, currentToken, reporter);
+        std::cout<<"Successfully parsed FACTOR_NT \n";
+        return true;
+    }
+    else if((*currentToken)->type == MINUS_OP_T){
+        *currentToken = scan(scannerParams);
+        if((*currentToken)->type == NUMBER_T){
+            *currentToken = scan(scannerParams);
+            std::cout<<"Successfully parsed FACTOR_NT \n";
+            return true;
+        }
+        else if((*currentToken)->type == IDENTIFIER_T){
+            parse_name_nt(scannerParams, currentToken, reporter);
+            std::cout<<"Successfully parsed FACTOR_NT \n";
+            return true;
+        }
+
+    }
+    else if((*currentToken)->type == NUMBER_T){
+        *currentToken = scan(scannerParams);
+        std::cout<<"Successfully parsed FACTOR_NT \n";
+        return true;
+    }
+    else if((*currentToken)->type == STRING_LITERAL_T){
+        *currentToken = scan(scannerParams);
+        std::cout<<"Successfully parsed FACTOR_NT \n";
+        return true;
+    }
+    else if((*currentToken)->type == TRUE_T){
+        *currentToken = scan(scannerParams);
+        std::cout<<"Successfully parsed FACTOR_NT \n";
+        return true;
+    }
+    else if((*currentToken)->type == FALSE_T){
+        *currentToken = scan(scannerParams);
+        std::cout<<"Successfully parsed FACTOR_NT \n";
+        return true;
+    }
+    else{
+        reporter->reportError("Couldn't match factor to any possible derivations \n");
+        return false;
+    }
+}
+
+bool parse_term_nt(ScannerParams* scannerParams, Token** currentToken, ErrorReporter* reporter){
+    std::cout<<"Parsing TERM_NT \n";
+    parse_factor_nt(scannerParams, currentToken, reporter);
+    if((*currentToken)->type == MULTIPLY_OP_T){
+        *currentToken = scan(scannerParams);
+        parse_factor_nt(scannerParams, currentToken, reporter);
+        std::cout<<"Successfully parsed TERM_NT";
+        return true;
+    }
+    else if((*currentToken)->type == DIVIDE_OP_T){
+        *currentToken = scan(scannerParams);
+        parse_factor_nt(scannerParams, currentToken, reporter);
+        std::cout<<"Successfully parsed TERM_NT";
+        return true;
+    }
+    else{
+        std::cout<<"Successfully parsed TERM_NT";
+        return true;
+    }
+}
+
+bool parse_relation_nt(ScannerParams* scannerParams, Token** currentToken, ErrorReporter* reporter){
+    std::cout<<"Parsing RELATION_NT \n";
+    parse_term_nt(scannerParams, currentToken, reporter);
+    if((*currentToken)->type == LESS_OP_T){
+        *currentToken = scan(scannerParams);
+        parse_term_nt(scannerParams, currentToken, reporter);
+        std::cout<<"Successfully parsed RELATION_NT \n";
+        return true;
+    }
+    else if((*currentToken)->type == GREATER_EQUAL_OP_T){
+        *currentToken = scan(scannerParams);
+        parse_term_nt(scannerParams, currentToken, reporter);
+        std::cout<<"Successfully parsed RELATION_NT \n";
+        return true;
+    }
+    else if((*currentToken)->type == LESS_EQUAL_OP_T){
+        *currentToken = scan(scannerParams);
+        parse_term_nt(scannerParams, currentToken, reporter);
+        std::cout<<"Successfully parsed RELATION_NT \n";
+        return true;
+    }
+    else if((*currentToken)->type == GREATER_OP_T){
+        *currentToken = scan(scannerParams);
+        parse_term_nt(scannerParams, currentToken, reporter);
+        std::cout<<"Successfully parsed RELATION_NT \n";
+        return true;
+    }
+    else if((*currentToken)->type == EQUALITY_OP_T){
+        *currentToken = scan(scannerParams);
+        parse_term_nt(scannerParams, currentToken, reporter);
+        std::cout<<"Successfully parsed RELATION_NT \n";
+        return true;
+    }
+    else if((*currentToken)->type == INEQUALITY_OP_T){
+        *currentToken = scan(scannerParams);
+        parse_term_nt(scannerParams, currentToken, reporter);
+        std::cout<<"Successfully parsed RELATION_NT \n";
+        return true;
+    }
+    else{
+        std::cout<<"Successfully parsed RELATION_NT \n";
+        return true;        
+    }
+}
+
+bool parse_arith_op_nt(ScannerParams* scannerParams, Token** currentToken, ErrorReporter* reporter){
+    std::cout<<"Parsing ARITH_OP_NT \n";
+    parse_relation_nt(scannerParams, currentToken, reporter);
+    if((*currentToken)->type == PLUS_OP_T){
+        *currentToken = scan(scannerParams);
+        parse_relation_nt(scannerParams, currentToken, reporter);
+        std::cout<<"Successfully parsed ARITH_OP_NT";
+        return true;
+    }
+    else if((*currentToken)->type == MINUS_OP_T){
+        *currentToken = scan(scannerParams);
+        parse_relation_nt(scannerParams, currentToken, reporter);
+        std::cout<<"Successfully parsed ARITH_OP_NT";
+        return true;
+    }
+    else{
+        std::cout<<"Successfully parsed ARITH_OP_NT";
+        return true; 
+    }
+}
+
+bool parse_expression_recurse_nt(ScannerParams* scannerParams, Token** currentToken, ErrorReporter* reporter){
+    std::cout<<"Parsing EXPRESSION_RECURSE_NT \n";
+    if((*currentToken)->type == AND_OP_T){
+        *currentToken = scan(scannerParams);
+        parse_arith_op_nt(scannerParams, currentToken, reporter);
+        std::cout<<"Successfully parsed EXPRESSION_RECURSE_NT \n";
+        return true;
+    }
+    else if((*currentToken)->type == OR_OP_T){
+        *currentToken = scan(scannerParams);
+        parse_arith_op_nt(scannerParams, currentToken, reporter);
+        std::cout<<"Successfully parsed EXPRESSION_RECURSE_NT \n";
+        return true;
+    }
+    else{
+        reporter->reportError("Expression should include & or |");
+        return false;
+    }
+}
+
+bool parse_expression_nt(ScannerParams* scannerParams, Token** currentToken, ErrorReporter* reporter){
+    std::cout<<"Parsing EXPRESSION_NT \n";
+    if((*currentToken)->type == NOT_T){
+        parse_arith_op_nt(scannerParams, currentToken, reporter);
+        if((*currentToken)->type == AND_OP_T || (*currentToken)->type == OR_OP_T){
+            parse_expression_recurse_nt(scannerParams, currentToken, reporter);
+            std::cout<<"Successfully parsed EXPRESSION_NT \n";
+            return true;
+        }
+        else{
+            std::cout<<"Successfully parsed EXPRESSION_NT \n";
+            return true;
+        }
+    }
+    else{
+        parse_arith_op_nt(scannerParams, currentToken, reporter);
+        if((*currentToken)->type == AND_OP_T || (*currentToken)->type == OR_OP_T){
+            parse_expression_recurse_nt(scannerParams, currentToken, reporter);
+            std::cout<<"Successfully parsed EXPRESSION_NT \n";
+            return true;
+        }
+        else{
+            std::cout<<"Successfully parsed EXPRESSION_NT \n";
+            return true;
+        }
+    }
+}
+
+bool parse_destination_nt(ScannerParams* scannerParams, Token** currentToken, ErrorReporter* reporter){
+    std::cout<<"Parsing DESTINATION_NT \n";
+    if((*currentToken)->type == IDENTIFIER_T){
+        *currentToken = scan(scannerParams);
+        if((*currentToken)->type == OPEN_BRACKET_T){
+            *currentToken = scan(scannerParams);
+            parse_expression_nt(scannerParams, currentToken, reporter);
+            if((*currentToken)->type == CLOSE_BRACKET_T){
+                *currentToken = scan(scannerParams);
+                std::cout<<"Successfully parsed DESTINATION_NT \n";
+                return true;
+            }
+            else{
+                reporter->reportError("Expression must be followed by a closing bracket");
+                return false;
+            }
+        }
+        else{
+            std::cout<<"Successfully parsed DESTINATION_NT \n";
+            return true;
+        }
+    }
+    else{
+        reporter->reportError("Destination must start with an identifier");
+        return false;
+    }
+}
+
+bool parse_assignment_statement_nt(ScannerParams* scannerParams, Token** currentToken, ErrorReporter* reporter){
+    std::cout<<"Parsing ASSIGNMENT_STATEMENT_NT \n";
+    parse_destination_nt(scannerParams, currentToken, reporter);
+    if((*currentToken)->type == ASSIGNMENT_OP_T){
+        *currentToken = scan(scannerParams);
+        parse_expression_nt(scannerParams, currentToken, reporter);
+        std::cout<<"Successfully parsed ASSIGNMENT_STATEMENT_NT \n";
+        return true;
+    }
+    else{
+        reporter->reportError("Assignment statement must use an assignment operator");
+        return false;
+    }
+}
+
+bool parse_statement_nt(ScannerParams* scannerParams, Token** currentToken, ErrorReporter* reporter){
+    std::cout<<"Parsing STATEMENT_NT \n";
+    if((*currentToken)->type == IDENTIFIER_T){
+        parse_assignment_statement_nt(scannerParams, currentToken, reporter);
+        std::cout<<"Successfully parsed STATEMENT_NT \n";
+        return true;
+    }
+    else if((*currentToken)->type == IF_T){
+        parse_if_statement_nt(scannerParams, currentToken, reporter);
+        std::cout<<"Successfully parsed STATEMENT_NT \n";
+        return true;
+    }
+    else if((*currentToken)->type == FOR_T){
+        parse_for_statement_nt(scannerParams, currentToken, reporter);
+        std::cout<<"Successfully parsed STATEMENT_NT \n";
+        return true;
+    }
+    else if((*currentToken)->type == RETURN_T){
+        parse_return_statement_nt(scannerParams, currentToken, reporter);
+        std::cout<<"Successfully parsed STATEMENT_NT \n";
+        return true;
+    }
+    else{
+        reporter->reportError("Statement must be an assignment statement, an if statement, a for statement, or a return statement");
+        return false;
+    }
+}
+
+bool parse_statement_nt_set(ScannerParams* scannerParams, Token** currentToken, ErrorReporter* reporter){
+     std::cout<<"Parsing STATEMENT_NT_SET \n";
+    bool endFound = false;
+    while(!endFound){
+        parse_statement_nt(scannerParams,currentToken, reporter);
+        if((*currentToken)->type == SEMICOLON_T){
+            std::cout<<"Advancing to next statement \n";
+            *currentToken = scan(scannerParams);
+        }
+        else if((*currentToken)->type == END_T){
+            endFound = true;
+        }
+        else{
+            reporter->reportError("Statement can only be followed by another statement or END");
+            return false;
+        }
+    }
+
+    std::cout<<"Successfully parsed STATEMENT_NT_SET \n";
+    return true;
+}
+
+bool parse_declaration_nt_set(ScannerParams* scannerParams, Token** currentToken, ErrorReporter* reporter);
+
+bool parse_procedure_body_nt(ScannerParams* scannerParams, Token** currentToken, ErrorReporter* reporter){
+    std::cout<<"Parsing PROCEDURE_BODY_NT \n";
+    parse_declaration_nt_set(scannerParams, currentToken, reporter);
+    if((*currentToken)->type == BEGIN_T){
+        *currentToken = scan(scannerParams);
+        parse_statement_nt_set(scannerParams, currentToken, reporter);
+        if((*currentToken)->type == END_T){
+            *currentToken = scan(scannerParams);
+            if((*currentToken)->type == PROCEDURE_T){
+                *currentToken = scan(scannerParams);
+                std::cout<<"Successfully parsed PROCEDURE_BODY_NT \n";
+                return true;
+            }
+            else{
+                reporter->reportError("Procedure ending must include 'procedure'");
+                return false;
+            }
+        }
+        else{
+            reporter->reportError("Statement set must be followed by 'end'");
+            return false;
+        }
+    }
+    else{
+        reporter->reportError("Declaration set must be followed by 'begin'");
+        return false;
+    }
+}
 
 bool parse_bound_nt(ScannerParams* scannerParams, Token** currentToken, ErrorReporter* reporter){
     std::cout<<"Parsing BOUND_NT \n";
-    parse_number_nt(scannerParams, currentToken, reporter);
-    std::cout<<"Successfully parsed BOUNT_NT \n";
-    return true;
+    if((*currentToken)->type == NUMBER_T){
+        *currentToken = scan(scannerParams);
+        std::cout<<"Successfully parsed BOUNT_NT \n";
+        return true;
+    }
+    else{
+        reporter->reportError("Bound must be a number");
+        return false;
+    }
+
 }
 
 bool parse_type_mark_nt(ScannerParams* scannerParams, Token** currentToken, ErrorReporter* reporter){
