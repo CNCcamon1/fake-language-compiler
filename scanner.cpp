@@ -115,13 +115,20 @@ Token* scan(struct ScannerParams* scannerParams){
                                 scannerParams->nextToken = PERIOD_T;
                             }
                             //It is the end of a token
-                            std::string token_string = buffer->substr(0, (buffer->size() - 1));
-                            if(token_string != ""){
-                                nextToken = match_token(&token_string, scannerParams->symbolTable);
+                            if(*buffer == lastCharacter && lastCharacter != " " && lastCharacter != "\n"){
+                                nextToken = new Token(scannerParams->nextToken);
+                                scannerParams->nextToken = NONE;
                             }
                             else{
-                                *buffer = "";
+                                std::string token_string = buffer->substr(0, (buffer->size() - 1));
+                                if(token_string != ""){
+                                    nextToken = match_token(&token_string, scannerParams->symbolTable);
+                                }
+                                else{
+                                    *buffer = "";
+                                }
                             }
+
                         }
                     }
 

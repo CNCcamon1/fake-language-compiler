@@ -158,11 +158,14 @@ bool parse_name_nt(ScannerParams* scannerParams, Token** currentToken){
 
 bool parse_argument_list_nt(ScannerParams* scannerParams, Token** currentToken){
     std::cout<<"Parsing ARGUMENT_LIST_NT \n";
-    parse_expression_nt(scannerParams, currentToken);
-    if((*currentToken)->type == COMMA_T){
-        *currentToken = scan(scannerParams);
-        parse_argument_list_nt(scannerParams, currentToken);
+    if((*currentToken)->type != CLOSE_PARENTHESIS_T){
+        parse_expression_nt(scannerParams, currentToken);
+        if((*currentToken)->type == COMMA_T){
+            *currentToken = scan(scannerParams);
+            parse_argument_list_nt(scannerParams, currentToken);
+        }
     }
+
     std::cout<<"Successfully parsed ARGUMENT_LIST_NT \n";
     return true;
 }

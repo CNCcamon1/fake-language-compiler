@@ -12,7 +12,7 @@ class InFile{
         int lineCount;
     public:
         InFile(std::string path) : file(path){
-            lineCount = 0;
+            lineCount = 1;
         }
 
         char get_next_char(){
@@ -20,6 +20,7 @@ class InFile{
             file.get(next);
             if(next == '\n'){
                 lineCount++;
+                std::cout<<"Advancing to line "<<lineCount<<"\n";
             }
             if(next == '\t'){
                 return get_next_char();
