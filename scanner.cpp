@@ -45,6 +45,7 @@ Token* match_token(std::string* buffer, SymbolTable* symbolTable){
     }
     else if(check_if_string(*buffer)){
         matched_token = new Token(STRING_LITERAL_T, *buffer);
+        return matched_token;
     }
     else{
         matched_token = symbolTable->mapGet(buffer);

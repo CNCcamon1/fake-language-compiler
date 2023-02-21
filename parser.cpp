@@ -481,7 +481,7 @@ bool parse_statement_nt_set(ScannerParams* scannerParams, Token** currentToken){
      std::cout<<"Parsing STATEMENT_NT_SET \n";
     bool endFound = false;
     while(!endFound){
-        if((*currentToken)->type == END_T){
+        if((*currentToken)->type == END_T || (*currentToken)->type == ELSE_T){
             endFound = true;
             break;
         }
