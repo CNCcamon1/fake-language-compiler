@@ -43,7 +43,10 @@ enum TokenType{
     DIVIDE_OP_T,
     STRING_LITERAL_T,
     TRUE_T,
-    FALSE_T
+    FALSE_T,
+    THEN_T,
+    ELSE_T,
+    FOR_T
 };
 
 enum TokenMark{

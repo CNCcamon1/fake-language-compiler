@@ -5,11 +5,131 @@
 #include "types/grammar.h"
 #include "scanner.h"
 
-bool parse_if_statement_nt(ScannerParams* scannerParams, Token** currentToken, ErrorReporter* reporter){
-    
+bool parse_expression_nt(ScannerParams* scannerParams, Token** currentToken, ErrorReporter* reporter);
+
+bool parse_statement_nt_set(ScannerParams* scannerParams, Token** currentToken, ErrorReporter* reporter);
+
+bool parse_assignment_statement_nt(ScannerParams* scannerParams, Token** currentToken, ErrorReporter* reporter);
+
+bool parse_return_statement_nt(ScannerParams* scannerParams, Token** currentToken, ErrorReporter* reporter){
+    std::cout<<"Parsing RETURN_STATEMENT_NT \n";
+    if((*currentToken)->type == RETURN_T){
+        *currentToken = scan(scannerParams);
+        parse_expression_nt(scannerParams, currentToken, reporter);
+        std::cout<<"Successfully parsed RETURN_STATEMENT_NT \n";
+        return true;
+    }
+    else{
+        reporter->reportError("Return statement must begin with 'return'");
+        return false;
+    }
 }
 
-bool parse_expression_nt(ScannerParams* scannerParams, Token** currentToken, ErrorReporter* reporter);
+bool parse_for_statement_nt(ScannerParams* scannerParams, Token** currentToken, ErrorReporter* reporter){
+    std::cout<<"Parsing FOR_STATEMENT_NT \n";
+    if((*currentToken)->type == FOR_T){
+        *currentToken = scan(scannerParams);
+        if((*currentToken)->type == OPEN_PARENTHESIS_T){
+            *currentToken = scan(scannerParams);
+            parse_assignment_statement_nt(scannerParams, currentToken, reporter);
+            if((*currentToken)->type == SEMICOLON_T){
+                *currentToken = scan(scannerParams);
+                parse_expression_nt(scannerParams, currentToken, reporter);
+                if((*currentToken)->type == CLOSE_PARENTHESIS_T){
+                    *currentToken = scan(scannerParams);
+                    parse_statement_nt_set(scannerParams, currentToken, reporter);
+                    if((*currentToken)->type == END_T){
+                        *currentToken = scan(scannerParams);
+                        if((*currentToken)->type == FOR_T){
+                            *currentToken = scan(scannerParams);
+                            std::cout<<"Successfully parsed FOR_STATEMENT_NT \n";
+                            return true;
+                        }
+                        else{
+                            reporter->reportError("For statement must have an 'end for'");
+                            return false;
+                        }
+                    }
+                    else{
+                        reporter->reportError("For loop must have an 'end'");
+                        return false;
+                    }
+                }
+                else{
+                    reporter->reportError("For expression must have a closing parentehsis");
+                    return false;
+                }
+            }
+            else{
+                reporter->reportError("Assignment statement in for loop must be followed by a semicolon");
+                return false;
+            }
+        }
+        else{
+            reporter->reportError("For statement must have an opening parenthesis");
+            return false;
+        }
+    }
+    else{
+        reporter->reportError("For statement must begin with 'for'");
+        return false;
+    }
+}
+
+bool parse_if_statement_nt(ScannerParams* scannerParams, Token** currentToken, ErrorReporter* reporter){
+    std::cout<<"Parsing IF_STATEMENT_NT \n";
+    if((*currentToken)->type == IF_T){
+        *currentToken = scan(scannerParams);
+        if((*currentToken)->type == OPEN_PARENTHESIS_T){
+            *currentToken = scan(scannerParams);
+            parse_expression_nt(scannerParams, currentToken, reporter);
+            if((*currentToken)->type == CLOSE_PARENTHESIS_T){
+                *currentToken = scan(scannerParams);
+                if((*currentToken)->type == THEN_T){
+                    *currentToken = scan(scannerParams);
+                    parse_statement_nt_set(scannerParams, currentToken, reporter);
+                    if((*currentToken)->type == ELSE_T){
+                        *currentToken = scan(scannerParams);
+                        parse_statement_nt_set(scannerParams, currentToken, reporter);
+                    }
+
+                    if((*currentToken)->type == END_T){
+                        *currentToken = scan(scannerParams);
+                        if((*currentToken)->type == IF_T){
+                            std::cout<<"Successfully parsed IF_STATEMENT_NT \n";
+                            *currentToken = scan(scannerParams);
+                            return true;
+                        }
+                        else{
+                            reporter->reportError("If statement must end with 'end if'");
+                            return false;
+                        }
+                    }
+                    else{
+                        reporter->reportError("If statement must have an 'end if");
+                        return false;
+                    }
+                }
+                else{
+                    reporter->reportError("If condition must include 'then'");
+                    return false;
+                }
+            }
+            else{
+                reporter->reportError("If condition must be followed by a closing parenthesis");
+                return false;
+            }
+        }
+        else{
+            reporter->reportError("If statement must have a set of parenthesis");
+            return false;
+        }
+    }
+    else{
+        reporter->reportError("If statement must begin with 'if'");
+        return false;
+    }
+}
 
 bool parse_name_nt(ScannerParams* scannerParams, Token** currentToken, ErrorReporter* reporter){
     std::cout<<"Parsing NAME_NT \n";
@@ -516,7 +636,7 @@ bool parse_parameter_list_nt(ScannerParams* scannerParams, Token** currentToken,
         }
         else{
             reporter->reportError("Parameter must be followed by either a close parenthesis or another parameter");
-            return false
+            return false;
         }
     }
     std::cout<<"Successfully parsed PARAMETER_LIST_NT \n";
