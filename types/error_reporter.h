@@ -1,5 +1,6 @@
 #include <exception>
 #include <string>
+#include <vector>
 
 #ifndef ERROR_REPORTER_TYPE
 #define ERROR_REPORTER_TYPE
@@ -28,18 +29,41 @@ struct NoValidDerivationsException : public std::exception {
    }
 };
 
+
+class Error{
+   public:
+      Error(const char* messageInput, int lineInput){
+         message = messageInput;
+         line = lineInput;
+      }
+      const char* message;
+      int line;
+};
+
 class ErrorReporter{
     public:
         ErrorReporter(){
             errorStatus = false;
         }
         bool errorStatus;
-        void reportError(const char* message){
 
+        void reportError(const char* message, int line){
+         Error* error = new Error(message, line);
+         errors.push_back(error);
+         errorStatus = true;
         };
         void reportWarning(const char* message){
             
         };
+
+        void print_errors(){
+         for(int i=0; i<errors.size(); i++){
+            std::cout<<errors[i]->message<<" at line "<<errors[i]->line<<std::endl;
+         }
+        }
+   private:
+      std::vector<Error*> errors;
+      std::vector<const char*> warnings;
 };
 
 #endif

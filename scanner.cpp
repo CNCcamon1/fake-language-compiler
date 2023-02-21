@@ -78,7 +78,7 @@ Token* scan(struct ScannerParams* scannerParams){
                         if(!(*buffer == "" || *buffer == "/" || *buffer == "*")){
                             /*If the buffer contains anything but the first character of a comment, 
                             and a comment has been entered, that's an error condition */
-                            scannerParams->errorReporter->reportError("No space detected between token and comment.");
+                            scannerParams->errorReporter->reportError("No space detected between token and comment.", scannerParams->file->get_line_count());
                         }
                         else{
                             *buffer = "";

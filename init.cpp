@@ -4,13 +4,13 @@ void compile_file(){
     InFile* file = new InFile("testPgms/correct/math.src");
     SymbolTable* symbolTable = new SymbolTable();
     CommentStatus* commentStatus = new CommentStatus();
-    ErrorReporter* errorReporter = new ErrorReporter();
+    ErrorReporter* reporter = new ErrorReporter();
     Token* nextToken = new Token(NONE);
-    struct ScannerParams* scannerParams;
+    ScannerParams* scannerParams = new ScannerParams();
     scannerParams->file = file;
+    scannerParams->errorReporter = reporter;
     scannerParams->symbolTable = symbolTable;
     scannerParams->commentStatus = commentStatus;
-    scannerParams->errorReporter = errorReporter;
     scannerParams->nextToken = NONE;
    parse_file(scannerParams);
     std::cout<<"Successfully parsed file. \n";
