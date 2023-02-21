@@ -40,11 +40,11 @@ bool check_if_string(std::string tokenString){
 Token* match_token(std::string* buffer, SymbolTable* symbolTable){
     Token* matched_token;
     if(check_if_number(*buffer)){
-        matched_token = new Token(NUMBER_NT, *buffer);
+        matched_token = new Token(NUMBER_T, *buffer);
         return matched_token;
     }
     else if(check_if_string(*buffer)){
-        matched_token = new Token(STRING_NT, *buffer);
+        matched_token = new Token(STRING_LITERAL_T, *buffer);
     }
     else{
         matched_token = symbolTable->mapGet(buffer);
@@ -78,8 +78,7 @@ Token* scan(struct ScannerParams* scannerParams){
                         if(!(*buffer == "" || *buffer == "/" || *buffer == "*")){
                             /*If the buffer contains anything but the first character of a comment, 
                             and a comment has been entered, that's an error condition */
-                            std::string* errorMessage = new std::string("No space detected between token and comment.");
-                            scannerParams->errorReporter->reportError(errorMessage);
+                            scannerParams->errorReporter->reportError("No space detected between token and comment.");
                         }
                         else{
                             *buffer = "";

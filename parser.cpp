@@ -1,8 +1,5 @@
 #include <vector>
 #include <iostream>
-#include "types/parse_tree.h"
-#include "types/grammar_option.h"
-#include "types/grammar.h"
 #include "scanner.h"
 
 bool parse_expression_nt(ScannerParams* scannerParams, Token** currentToken, ErrorReporter* reporter);
@@ -807,18 +804,20 @@ bool parse_program_nt(ScannerParams* scannerParams, Token** currentToken, ErrorR
     std::cout<<"Parsing PROGRAM_NT \n";
     parse_program_header_nt(scannerParams, currentToken, reporter);
     parse_program_body_nt(scannerParams, currentToken, reporter);
-    std::cout<<"Successfully parsed PROGRAM_NT \n";
-    return true;
+    if((*currentToken)->type == PERIOD_T){
+        std::cout<<"Successfully parsed PROGRAM_NT \n";
+        return true;
+    }
+    else{
+        reporter->reportError("Program must end with period");
+        return false;
+    }
 }
 
-ParseTree* parse_file(struct ScannerParams* scannerParams){
-
-        ParseTree* parsedTree = new ParseTree(new ParseTreeNode(PROGRAM_NT));
-        std::vector<Token*> encounteredTokens;
-        Grammar* grammar = new Grammar();
-        grammar->build_grammar();
-        encounteredTokens.push_back(scan(scannerParams));
-        encounteredTokens.push_back(scan(scannerParams));
-        parse_node(parsedTree->rootNode, scannerParams, &encounteredTokens, 0, grammar);
-        return parsedTree;
+bool parse_file(struct ScannerParams* scannerParams){
+    ErrorReporter* reporter = new ErrorReporter();
+    Token** currentToken;
+    *currentToken = scan(scannerParams);
+    parse_program_nt(scannerParams, currentToken, reporter);
+    return true;
 };

@@ -46,7 +46,10 @@ enum TokenType{
     FALSE_T,
     THEN_T,
     ELSE_T,
-    FOR_T
+    PERIOD_T,
+    END_OF_FILE,
+    QUOTE_T,
+    NONE
 };
 
 enum TokenMark{

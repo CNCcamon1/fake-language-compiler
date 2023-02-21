@@ -11,11 +11,11 @@ class SymbolTable{
             initialize_reserved_symbols();
         }
         void mapSet(std::string* string){
-            map[to_lower_case(string)] = new Token(IDENTIFIER_NT, *string);
+            map[to_lower_case(string)] = new Token(IDENTIFIER_T, *string);
         }
 
         void mapSet(std::string* string, TokenMark mark){
-            map[to_lower_case(string)] = new Token(IDENTIFIER_NT, *string, mark);
+            map[to_lower_case(string)] = new Token(IDENTIFIER_T, *string, mark);
         }
         Token* mapGet(std::string* key){
             if(map[to_lower_case(key)]){
@@ -61,13 +61,13 @@ class SymbolTable{
             map["return"] = new Token(RETURN_T);
             map["&"] = new Token(AND_OP_T);
             map["|"] = new Token(OR_OP_T);
-            map["not"] = new Token(NOT_OP_T);
+            map["not"] = new Token(NOT_T);
             map["+"] = new Token(PLUS_OP_T);
             map["-"] = new Token(MINUS_OP_T);
-            map["<"] = new Token(LESSTHAN_OP_T);
+            map["<"] = new Token(LESS_OP_T);
             map[">="] = new Token(GREATER_EQUAL_OP_T);
             map["<="] = new Token(LESS_EQUAL_OP_T);
-            map[">"] = new Token(GREATERTHAN_OP_T);
+            map[">"] = new Token(GREATER_OP_T);
             map["=="] = new Token(EQUALITY_OP_T);
             map["!="] = new Token(INEQUALITY_OP_T);
             map["*"] = new Token(MULTIPLY_OP_T);
@@ -75,14 +75,14 @@ class SymbolTable{
             map["true"] = new Token(TRUE_T);
             map["false"] = new Token(FALSE_T);
             map["\""] = new Token(QUOTE_T);
-            map["getbool"] = new Token(IDENTIFIER_NT, "getBool", PROCEDURE_M);
-            map["getinteger"] = new Token(IDENTIFIER_NT, "getInteger", PROCEDURE_M);
-            map["getfloat"] = new Token(IDENTIFIER_NT, "getFloat", PROCEDURE_M);
-            map["getstring"] = new Token(IDENTIFIER_NT, "getString", PROCEDURE_M);
-            map["putbool"] = new Token(IDENTIFIER_NT, "putBool", PROCEDURE_M);
-            map["putinteger"] = new Token(IDENTIFIER_NT, "putInteger", PROCEDURE_M);
-            map["putfloat"] = new Token(IDENTIFIER_NT, "putFloat", PROCEDURE_M);
-            map["putstring"] = new Token(IDENTIFIER_NT, "putString", PROCEDURE_M);
+            map["getbool"] = new Token(IDENTIFIER_T, "getBool", PROCEDURE_M);
+            map["getinteger"] = new Token(IDENTIFIER_T, "getInteger", PROCEDURE_M);
+            map["getfloat"] = new Token(IDENTIFIER_T, "getFloat", PROCEDURE_M);
+            map["getstring"] = new Token(IDENTIFIER_T, "getString", PROCEDURE_M);
+            map["putbool"] = new Token(IDENTIFIER_T, "putBool", PROCEDURE_M);
+            map["putinteger"] = new Token(IDENTIFIER_T, "putInteger", PROCEDURE_M);
+            map["putfloat"] = new Token(IDENTIFIER_T, "putFloat", PROCEDURE_M);
+            map["putstring"] = new Token(IDENTIFIER_T, "putString", PROCEDURE_M);
         }
 };
 
