@@ -146,7 +146,7 @@ Token* scan(struct ScannerParams* scannerParams){
                             }
                             else{
                                 //Otherwise check if the colon is followed by whitespace or some other character
-                                if(nextChar != ' ' && nextChar != '\n'){
+                                if(nextChar != ' ' && nextChar != '\n' && nextChar != '\r'){
                                     //If the colon is followed by something other than whitespace, make that the prebuffered value
                                     *scannerParams->preBuffered = nextChar;
                                 }
@@ -181,7 +181,7 @@ Token* scan(struct ScannerParams* scannerParams){
 
                             }
                             //If the string doesn't end with a static token but does end with a whitespace, then we've found the end of a nonstatic token but shouldn't buffer anything
-                            else if(nextChar == ' ' || nextChar == '\n'){
+                            else if(nextChar == ' ' || nextChar == '\n' || nextChar == '\r'){
                                 if(*buffer != ""){
                                     nextToken = match_non_static_token(buffer, scannerParams->symbolTable);
                                 }

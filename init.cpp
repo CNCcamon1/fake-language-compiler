@@ -1,7 +1,7 @@
 #include "parser.h"
 
 void compile_file(){
-    InFile* file = new InFile("testPgms/correct/test_heap.src");
+    InFile* file = new InFile("testPgms/correct/test1.src");
     SymbolTable* symbolTable = new SymbolTable();
     CommentStatus* commentStatus = new CommentStatus();
     ErrorReporter* reporter = new ErrorReporter();

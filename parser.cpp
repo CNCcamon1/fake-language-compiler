@@ -629,21 +629,24 @@ bool parse_parameter_nt(ScannerParams* scannerParams, Token** currentToken){
 
 bool parse_parameter_list_nt(ScannerParams* scannerParams, Token** currentToken){
     std::cout<<"Parsing PARAMTER_LIST_NT \n";
-    bool endFound = false;
-    while(!endFound){
-        parse_parameter_nt(scannerParams, currentToken);
-        if((*currentToken)->type == COMMA_T){
-            *currentToken = scan(scannerParams);
-            std::cout<<"Advancing to next parameter \n";
-        }
-        else if((*currentToken)->type == CLOSE_PARENTHESIS_T){
-            endFound = true;
-        }
-        else{
-            scannerParams->errorReporter->reportError("Parameter must be followed by either a close parenthesis or another parameter", scannerParams->file->get_line_count());
-            return false;
+    if((*currentToken)->type != CLOSE_PARENTHESIS_T){
+        bool endFound = false;
+        while(!endFound){
+            parse_parameter_nt(scannerParams, currentToken);
+            if((*currentToken)->type == COMMA_T){
+                *currentToken = scan(scannerParams);
+                std::cout<<"Advancing to next parameter \n";
+            }
+            else if((*currentToken)->type == CLOSE_PARENTHESIS_T){
+                endFound = true;
+            }
+            else{
+                scannerParams->errorReporter->reportError("Parameter must be followed by either a close parenthesis or another parameter", scannerParams->file->get_line_count());
+                return false;
+            }
         }
     }
+
     std::cout<<"Successfully parsed PARAMETER_LIST_NT \n";
     return true;
 }
