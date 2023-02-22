@@ -5,6 +5,7 @@ Output: A stream of tokens to parse
 #include <iostream>
 #include <map>
 #include "scanner.h"
+#include <string>
 
 bool check_if_number(std::string tokenString){
     std::string::const_iterator it = tokenString.begin();
@@ -62,12 +63,12 @@ Token* match_static_token(std::string* buffer){
 
 bool character_is_static_token(char nextChar){
     return (nextChar == ';' || nextChar == '(' || nextChar == ')'
-        || nextChar == '[' || nextChar == ']' || nextChar == '.');
+        || nextChar == '[' || nextChar == ']');
 }
 
 bool string_is_static_token(std::string nextChar){
     return (nextChar == ";" || nextChar == "(" || nextChar == ")"
-        || nextChar == "[" || nextChar == "]" || nextChar == ".");
+        || nextChar == "[" || nextChar == "]");
 }
 
 Token* match_non_static_token(std::string* buffer, SymbolTable* symbolTable){
@@ -105,6 +106,9 @@ Token* scan(struct ScannerParams* scannerParams){
         //If the preBuffered value is a static token, just return it
         if(string_is_static_token(*buffer)){
            return match_static_token(buffer);
+        }
+        else if(*buffer == "."){
+            return new Token(PERIOD_T);
         }
         //Otherwise continue on with the prebuffered value already in the buffer
     }
@@ -179,6 +183,20 @@ Token* scan(struct ScannerParams* scannerParams){
                                     *scannerParams->preBuffered = ":";
                                 }
 
+                            }
+                            else if(nextChar == '.'){
+                                if(check_if_number(*buffer)){
+                                    *buffer += nextChar;
+                                }
+                                else{
+                                    if(*buffer == ""){
+                                        nextToken = new Token(PERIOD_T);
+                                    }
+                                    else{
+                                        nextToken = match_non_static_token(buffer, scannerParams->symbolTable);
+                                        *scannerParams->preBuffered = nextChar;
+                                    }
+                                }
                             }
                             //If the string doesn't end with a static token but does end with a whitespace, then we've found the end of a nonstatic token but shouldn't buffer anything
                             else if(nextChar == ' ' || nextChar == '\n' || nextChar == '\r'){
