@@ -17,8 +17,8 @@ class CommentStatus{
                 return false;
             }
         }
-        void update_comment_status(char c){
-            if(c == '/'){
+        void update_comment_status(char* c, InFile* file){
+            if(*c == '/'){
                 if(beginningComment){
                     if(multiLineComment == false){
                         commentCount += 1;
@@ -26,12 +26,13 @@ class CommentStatus{
                 }
                 else if(endingComment){
                     commentCount -= 1;
+                    *c = file->get_next_char();
                 }
                 else{
                     beginningComment = true;
                 }
             }
-            else if(c == '*'){
+            else if(*c == '*'){
                 if(beginningComment){
                     commentCount += 1;
                     multiLineComment = true;
@@ -40,7 +41,7 @@ class CommentStatus{
                     endingComment = true;
                 }
             }
-            else if(c == '\n'){
+            else if(*c == '\n'){
                 beginningComment = false;
                 endingComment = false;
                 end_line();
