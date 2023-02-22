@@ -1,17 +1,17 @@
 #include "parser.h"
 
 void compile_file(){
-    InFile* file = new InFile("testPgms/correct/logicals.src");
+    InFile* file = new InFile("testPgms/correct/source.src");
     SymbolTable* symbolTable = new SymbolTable();
     CommentStatus* commentStatus = new CommentStatus();
     ErrorReporter* reporter = new ErrorReporter();
-    Token* nextToken = new Token(NONE);
     ScannerParams* scannerParams = new ScannerParams();
     scannerParams->file = file;
     scannerParams->errorReporter = reporter;
     scannerParams->symbolTable = symbolTable;
     scannerParams->commentStatus = commentStatus;
-    scannerParams->nextToken = NONE;
+    std::string nothing = "";
+    scannerParams->preBuffered = &nothing;
    parse_file(scannerParams);
     std::cout<<"Successfully parsed file. \n";
 };

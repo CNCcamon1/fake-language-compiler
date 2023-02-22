@@ -9,7 +9,7 @@ struct ScannerParams{
     SymbolTable* symbolTable;
     CommentStatus* commentStatus;
     ErrorReporter* errorReporter;
-    TokenType nextToken;
+    std::string* preBuffered;
 };
 
 Token* scan(struct ScannerParams* scannerParams);
