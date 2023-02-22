@@ -94,6 +94,7 @@ Token* match_non_static_token(std::string* buffer, SymbolTable* symbolTable){
 
 Token* scan(struct ScannerParams* scannerParams){
     Token* nextToken = nullptr;
+    bool is_string_literal = false;
     std::string* buffer;
     //Check if there is a prebuffered value
     if(*scannerParams->preBuffered != ""){
@@ -130,59 +131,71 @@ Token* scan(struct ScannerParams* scannerParams){
                     
                 }
                 else{
-                    //Check the special case for the colon
-                    if(*buffer == ":"){
-                        //If the buffer is a colon and the next character is an equals sign, then we can safely return an assignment operator
-                        if(nextChar == '='){
-                            nextToken = new Token(ASSIGNMENT_OP_T);
-                        }
-                        else{
-                            //Otherwise check if the colon is followed by whitespace or some other character
-                            if(nextChar != ' ' && nextChar != '\n'){
-                                //If the colon is followed by something other than whitespace, make that the prebuffered value
-                                *scannerParams->preBuffered = nextChar;
-                            }
-                            //Return a colon
-                            nextToken = new Token(COLON_T);
+                    if(is_string_literal){
+                        *buffer += nextChar;
+                        if(nextChar == '\"'){
+                            nextToken = match_non_static_token(buffer, scannerParams->symbolTable);
                         }
                     }
                     else{
-                        //Check if the next character is a static token
-                        if(character_is_static_token(nextChar)){
-                            //If it is, check if the buffer is empty
-                            if(*buffer == ""){
-                                //If the buffer is empty and the next character is a static token then we can just return that
-                                *buffer += nextChar;
-                                nextToken = match_static_token(buffer);
+                        //Check the special case for the colon
+                        if(*buffer == ":"){
+                            //If the buffer is a colon and the next character is an equals sign, then we can safely return an assignment operator
+                            if(nextChar == '='){
+                                nextToken = new Token(ASSIGNMENT_OP_T);
                             }
                             else{
-                                //We've found the end of a non-static token. Return that and set the prebuffered value to be that static token
-                                nextToken = match_non_static_token(buffer, scannerParams->symbolTable);
-                                *scannerParams->preBuffered = nextChar;
+                                //Otherwise check if the colon is followed by whitespace or some other character
+                                if(nextChar != ' ' && nextChar != '\n'){
+                                    //If the colon is followed by something other than whitespace, make that the prebuffered value
+                                    *scannerParams->preBuffered = nextChar;
+                                }
+                                //Return a colon
+                                nextToken = new Token(COLON_T);
                             }
-                        }
-                        //Check the special case that the next character is a colon
-                        else if(nextChar == ':'){
-                            if(*buffer == ""){
-                                *buffer += ":";
-                            }
-                            else{
-                                nextToken = match_non_static_token(buffer, scannerParams->symbolTable);
-                                *scannerParams->preBuffered = ":";
-                            }
-
-                        }
-                        //If the string doesn't end with a static token but does end with a whitespace, then we've found the end of a nonstatic token but shouldn't buffer anything
-                        else if(nextChar == ' ' || nextChar == '\n'){
-                            if(*buffer != ""){
-                                nextToken = match_non_static_token(buffer, scannerParams->symbolTable);
-                            }
-
                         }
                         else{
-                            *buffer += nextChar;
+                            //Check if the next character is a static token
+                            if(character_is_static_token(nextChar)){
+                                //If it is, check if the buffer is empty
+                                if(*buffer == ""){
+                                    //If the buffer is empty and the next character is a static token then we can just return that
+                                    *buffer += nextChar;
+                                    nextToken = match_static_token(buffer);
+                                }
+                                else{
+                                    //We've found the end of a non-static token. Return that and set the prebuffered value to be that static token
+                                    nextToken = match_non_static_token(buffer, scannerParams->symbolTable);
+                                    *scannerParams->preBuffered = nextChar;
+                                }
+                            }
+                            //Check the special case that the next character is a colon
+                            else if(nextChar == ':'){
+                                if(*buffer == ""){
+                                    *buffer += ":";
+                                }
+                                else{
+                                    nextToken = match_non_static_token(buffer, scannerParams->symbolTable);
+                                    *scannerParams->preBuffered = ":";
+                                }
+
+                            }
+                            //If the string doesn't end with a static token but does end with a whitespace, then we've found the end of a nonstatic token but shouldn't buffer anything
+                            else if(nextChar == ' ' || nextChar == '\n'){
+                                if(*buffer != ""){
+                                    nextToken = match_non_static_token(buffer, scannerParams->symbolTable);
+                                }
+
+                            }
+                            else{
+                                if(nextChar == '\"'){
+                                    is_string_literal = true;
+                                }
+                                *buffer += nextChar;
+                            }
                         }
                     }
+
 
                 }
 
